@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <label for="nombre">Nombre: <span id="nombre"></span></label><br>
+    <label for="lugar">Lugar: <span id="lugar"></span></label><br>
+    <label for="anio">Año: <span id="anio"></span></label><br>
+    
+    <script>
+        var JSONObject = {
+            "name" : "Juan",
+            "place" : "Jalisco",
+            "year" : 1989
+        };
+
+        document.getElementById("nombre").innerHTML = JSONObject["name"];
+        document.getElementById("lugar").innerHTML = JSONObject["place"];
+        document.getElementById("anio").innerHTML = JSONObject["year"];
+    </script>
+    
+</body>
+</html>

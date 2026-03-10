@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!-- Indica al navegador que este documento usa HTML5 -->
+
+<html lang="en">
+<!-- Etiqueta raíz del documento HTML.
+     lang="en" indica que el idioma principal de la página es inglés -->
+
+<head>
+    <!-- Contiene información de configuración de la página, no visible como contenido principal -->
+
+    <meta charset="UTF-8">
+    <!-- Define la codificación de caracteres como UTF-8.
+         Sirve para que se vean bien letras, acentos, símbolos, etc. -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Hace que la página se adapte al ancho del dispositivo.
+         Es importante para que se vea bien en celulares y tablets -->
+
+    <title>Document</title>
+    <!-- Título de la pestaña del navegador -->
+</head>
+
+<body>
+    <!-- Aquí va todo el contenido visible de la página -->
+     <div onmouseover="eventMouseOver(this)" 
+        onmouseout="eventMouseOut(this)" > 
+        Mouse Over Me
+    </div>
+     <p>Please input a number between 5 and 10:</p>
+    <input id="demo" type="text">
+    <button type="button" onclick="myFunction()">Test Input</button>
+    <p id="mess"></p>
+
+    <h1 id ="anyId1" onclick="increaseText('anyId1')">Click on this text!</h1>
+    <h1 id ="anyId2" onclick="increaseText('anyId2')">Click on this text!</h1>
+    <input type="text" id="anyId3" onchange="upperCase('anyId3');">
+
+    <h1 id="titulo1" name="titulo1">Titulo 1</h1><br>
+    <!-- Encabezado principal.
+         id="titulo1" permite identificar este elemento con JavaScript o CSS.
+         name="titulo1" aquí realmente no es necesario para un h1.
+         <br> inserta un salto de línea -->
+
+    <h2>Titulo 2</h2><br>
+    <!-- Encabezado de nivel 2 -->
+
+    <h3>Titulo 3</h3><br>
+    <!-- Encabezado de nivel 3 -->
+
+    <h4>Titulo 4</h4><br>
+    <!-- Encabezado de nivel 4 -->
+
+    <h5>Titulo 5</h5><br>
+    <!-- Encabezado de nivel 5 -->
+
+    <h6>Titulo 6</h6><br>
+    <!-- Encabezado de nivel 6 -->
+
+    
+    <span id="contenedor1"> </span>
+    <!-- span es un contenedor en línea.
+         Aquí está vacío al inicio y tiene id="contenedor1" para poder cambiarlo con JavaScript -->
+
+    <div id="contenedor2"> </div>
+    <!-- div es un contenedor en bloque.
+         También está vacío y podría modificarse con JavaScript si quisieras -->
+
+    <input type="button" value="Cambiar" onclick="cambiar('contenedor1')">
+    <!-- Botón.
+         Cuando haces clic, ejecuta la función cambiar('contenedor1')
+         y por eso modifica el contenido del span con id="contenedor1" -->
+
+    <ol>
+    <!-- Lista ordenada: muestra elementos numerados -->
+
+        <li>Elemento A</li>
+        <!-- Primer elemento de la lista -->
+
+        <li>Elemento B</li>
+        <!-- Segundo elemento de la lista -->
+
+        <li>Elemento C</li>
+        <!-- Tercer elemento de la lista -->
+    </ol>
+
+    <ul>
+    <!-- Lista no ordenada: muestra elementos con viñetas -->
+
+        <li>Elemento A</li>
+        <!-- Primer elemento -->
+
+        <li>Elemento B</li>
+        <!-- Segundo elemento -->
+
+        <li>Elemento C</li>
+        <!-- Tercer elemento -->
+    </l>
+    <!-- AQUÍ HAY UN ERROR:
+         debería cerrarse con </ul> y no con </l> -->
+
+    <a href="https://www.google.com" target="_blank">Vinculo</a>
+    <!-- Enlace a Google.
+         target="_blank" abre el enlace en una pestaña nueva -->
+
+    <a href="https://www.google.com" target="_self">Vinculo</a>
+    <!-- Enlace a Google.
+         target="_self" lo abre en la misma pestaña -->
+
+    <a href="mailto:ejemplo@email.com:">Correo</a>
+    <!-- Enlace para abrir el cliente de correo y enviar un email.
+         Normalmente sería mailto:ejemplo@email.com sin los dos puntos finales -->
+
+    <form action="otra.html" method="get">
+        <!-- Inicia un formulario.
+             action="otra.html" indica a qué archivo se envían los datos.
+             method="get" indica que los datos viajan en la URL -->
+
+        <label for="nombre">Ingresa tu nombre:</label><br>
+        <!-- Etiqueta asociada al input cuyo id es "nombre" -->
+
+        <input type="text" id="nombre" name="nombre"><br>
+        <!-- Campo de texto para escribir el nombre.
+             id lo identifica en la página.
+             name es el nombre con el que se enviará el dato -->
+
+        <p>Selecciona un tipo</p>
+        <!-- Párrafo que funciona como instrucción -->
+
+        <input type="radio" id="tipo" name="tipo" value="tipo">
+        <!-- Botón de opción (radio button).
+             Sirve para seleccionar una opción entre varias -->
+
+        <label for="tipo"> Tipo 1 </label>
+        <!-- Etiqueta asociada al radio button -->
+
+        <label for="tipo">Selecciona un tipo</label>
+        <!-- Otra etiqueta, ahora asociada al select -->
+
+        <select id="tipo" name="tipo">
+            <!-- Lista desplegable -->
+
+            <option value="opcion1" selected>Opcion 1</option>
+            <!-- Primera opción, marcada como seleccionada por defecto -->
+
+            <option value="opcion2" selected>Opcion 2</option>
+            <!-- Segunda opción.
+                 AQUÍ HAY UN DETALLE:
+                 no deberían estar ambas con selected en un select normal -->
+
+        </select>
+
+        <input type="checkbox" id="opcion" name="opcion" checked><br>
+        <!-- Casilla de verificación.
+             checked significa que inicia marcada -->
+
+        <label for="opcion">Esta una opción </label>
+        <!-- Etiqueta de la casilla -->
+
+        <label for="texto_largo">Escribe algo:</label>
+        <!-- Etiqueta del área de texto -->
+
+        <textarea name="texto_largo" id="texto_largo" rows="10" cols="30">Este es un mensaje largo</textarea><br>
+        <!-- Área de texto grande.
+             rows indica el número de filas.
+             cols indica el número de columnas -->
+
+        <input type="submit"> OK </input>
+        <!-- AQUÍ HAY UN ERROR DE USO:
+             input es una etiqueta vacía, no lleva cierre </input>.
+             Además el texto "OK" no funciona así en un input -->
+
+        <input type="submit" value="Enviar">
+        <!-- Botón submit correcto.
+             Envía el formulario -->
+
+        <input type="reset" value="Borrar">
+        <!-- Botón para reiniciar o limpiar los campos del formulario -->
+
+        <input type="button" value="Genérico" onclick="funcion()">
+        <!-- Botón genérico.
+             Cuando lo presionas ejecuta funcion().
+             Pero AQUÍ HAY UN PROBLEMA:
+             no existe una función llamada funcion() en el script -->
+
+    </form>
+    <!-- Fin del formulario -->
+    <script src="scripts/code.js" defer></script>
+</body>
+<!-- Fin del cuerpo de la página -->
+
+</html>
+<!-- Fin del documento HTML -->

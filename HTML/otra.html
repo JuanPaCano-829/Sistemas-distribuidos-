@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        const all_parameters = window.location.search;
+        document.write("Estos son los parametros:"+ all_parameters);
+        const urlParams = new URLSearchParams(all_parameters);
+        const nombre = urlParams.get("nombre");
+        console.log(nombre);
+        document.write("Este el nombre:"+ nombre);
+    </script>
+
+</body>
+</html>
