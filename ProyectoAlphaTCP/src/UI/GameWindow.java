@@ -22,7 +22,7 @@ public class GameWindow extends JFrame {
     private int topoVisible = -1; // botón que tiene el topo visible, -1 significa que no hay ninguno
 
     public GameWindow() { // para construir la ventana
-        topoGif = new ImageIcon(getClass().getResource("/assets/topo_saliendo.gif"));
+        topoGif = new ImageIcon(getClass().getResource("/Assets/topo_saliendo.gif"));
         setTitle("Pegarle al Topo - Proyecto Alpha - Juan Pablo y Giuseppe"); // nombre de la ventana
         setSize(500, 600); // ancho y alto de la ventana
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // cuando cierras la ventana el programa termina
