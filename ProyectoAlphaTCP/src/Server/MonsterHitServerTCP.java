@@ -1,6 +1,7 @@
 package Server;
 
 import Model.GameState;
+import Model.Player;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,57 +9,21 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-// ==========================================
-// CLASE MONSTERHITSERVERTCP
-// Esta clase representa el servidor TCP del juego.
-//
-// Su trabajo es:
-// - abrir un puerto
-// - esperar conexiones de clientes
-// - aceptar mensajes TCP
-// - crear un hilo por cada cliente
-// Solamente recibe acciones de los jugadores y actualiza
-// el estado del juego usando GameState
-// ==========================================
-
 public class MonsterHitServerTCP {
-
-    // ==========================================
-    // CONSTANTES DEL SERVIDOR
-    // ==========================================
-
-    private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde el servidor escuchará conexiones
-
-    // ==========================================
-    // ATRIBUTOS COMPARTIDOS DEL SERVIDOR
-    // ==========================================
-
-    private static GameState estadoActualDelJuego;                 // estado global de la partida
-    private static MonsterPublisherActiveMQ publicadorDeEventos;   // clase que publica eventos al tópico
-
-    // ==========================================
-    // MÉTODO MAIN
-    // ==========================================
-    // Aquí inicia el servidor.
-    //
-    // El servidor:
-    // 1. crea el estado del juego
-    // 2. crea el publicador de eventos
-    // 3. abre el puerto TCP
-    // 4. espera clientes en un ciclo infinito
-    // 5. crea un ConnectionHandler por cada cliente
+    private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde escucha el servidor
+    private static GameState estadoActualDelJuego; // estado global compartido
+    private static MonsterPublisherActiveMQ publicadorDeEventos; // publisher de ActiveMQ
 
     public static void main(String[] args) {
-
         try {
-            // crea el estado global del juego
-            estadoActualDelJuego = new GameState();
+            estadoActualDelJuego = new GameState(); // crea el estado global compartido
+            publicadorDeEventos = new MonsterPublisherActiveMQ(estadoActualDelJuego); // usa el mismo GameState
 
-            // crea el publicador que después enviará eventos por ActiveMQ
-            publicadorDeEventos = new MonsterPublisherActiveMQ();
+            // inicia el publisher en segundo plano
+            Thread hiloPublisher = new Thread(() -> publicadorDeEventos.startPublishing());
+            hiloPublisher.start();
 
-            // abre el puerto del servidor TCP
-            ServerSocket socketServidor = new ServerSocket(PUERTO_SERVIDOR_TCP);
+            ServerSocket socketServidor = new ServerSocket(PUERTO_SERVIDOR_TCP); // abre el puerto TCP
 
             System.out.println("==========================================");
             System.out.println("Servidor TCP del juego iniciado");
@@ -66,14 +31,12 @@ public class MonsterHitServerTCP {
             System.out.println("Esperando conexiones de clientes...");
             System.out.println("==========================================");
 
-            // ciclo infinito para aceptar jugadores
             while (true) {
                 Socket socketDelCliente = socketServidor.accept(); // espera hasta que un cliente se conecte
                 System.out.println("Nuevo cliente conectado desde: " + socketDelCliente.getInetAddress());
 
-                // crea un hilo que atenderá a ese cliente en particular
                 ConnectionHandler manejadorDeConexion =
-                        new ConnectionHandler(socketDelCliente, estadoActualDelJuego, publicadorDeEventos);
+                        new ConnectionHandler(socketDelCliente, estadoActualDelJuego); // crea un hilo para atender a ese cliente
 
                 manejadorDeConexion.start(); // inicia el hilo del cliente
             }
@@ -84,281 +47,157 @@ public class MonsterHitServerTCP {
     }
 }
 
-
-// ==========================================
-// CLASE CONNECTIONHANDLER
-// ==========================================
-// Esta clase se encarga de atender a UN cliente.
-//
-// Cada vez que un cliente se conecta, se crea un
-// ConnectionHandler diferente.
-//
-// Su trabajo es:
-// - leer el mensaje del cliente
-// - interpretar el comando
-// - actualizar GameState
-// - responder al cliente
-//
-// Se usa Thread para que varios clientes puedan
-// conectarse al mismo tiempo sin bloquearse entre sí.
-
 class ConnectionHandler extends Thread {
+    private final Socket socketDelCliente; // socket de este cliente
+    private final DataInputStream flujoDeEntrada; // flujo para leer mensajes
+    private final DataOutputStream flujoDeSalida; // flujo para responder
+    private final GameState estadoActualDelJuego; // referencia al estado compartido
 
-    // ==========================================
-    // ATRIBUTOS DE LA CONEXIÓN
-    // ==========================================
+    public ConnectionHandler(Socket socketCliente, GameState gameStateCompartido) throws IOException {
+        socketDelCliente = socketCliente; // guarda el socket del cliente
+        estadoActualDelJuego = gameStateCompartido; // guarda el estado compartido
 
-    private final Socket socketDelCliente;                      // socket específico de este cliente
-    private final DataInputStream flujoDeEntrada;               // para leer mensajes del cliente
-    private final DataOutputStream flujoDeSalida;               // para responder al cliente
-    private final GameState estadoActualDelJuego;               // referencia compartida al estado global
-    private final MonsterPublisherActiveMQ publicadorDeEventos; // referencia al publicador de ActiveMQ
-
-
-    // ==========================================
-    // CONSTRUCTOR
-    // ==========================================
-    // Prepara todo lo necesario para hablar con este cliente
-
-    public ConnectionHandler(Socket socketCliente,
-                             GameState gameStateCompartido,
-                             MonsterPublisherActiveMQ publicadorCompartido) throws IOException {
-
-        socketDelCliente = socketCliente;                   // guarda el socket del cliente
-        estadoActualDelJuego = gameStateCompartido;         // guarda la referencia al estado del juego
-        publicadorDeEventos = publicadorCompartido;         // guarda la referencia al publicador
-
-        flujoDeEntrada = new DataInputStream(socketDelCliente.getInputStream());   // canal para leer
-        flujoDeSalida = new DataOutputStream(socketDelCliente.getOutputStream());  // canal para responder
+        flujoDeEntrada = new DataInputStream(socketDelCliente.getInputStream()); // flujo de entrada
+        flujoDeSalida = new DataOutputStream(socketDelCliente.getOutputStream()); // flujo de salida
     }
-
-
-    // ==========================================
-    // MÉTODO RUN
-    // ==========================================
-    // Aquí vive la lógica de atención del cliente.
-    //
-    // El flujo general es:
-    // 1. leer mensaje
-    // 2. procesarlo
-    // 3. responder
-    // 4. cerrar conexión
 
     @Override
     public void run() {
-
         try {
-            // lee el mensaje enviado por el cliente
-            String mensajeRecibido = flujoDeEntrada.readUTF();
+            String mensajeRecibido = flujoDeEntrada.readUTF(); // lee el mensaje enviado por el cliente
             System.out.println("Mensaje recibido: " + mensajeRecibido);
 
-            // procesa el mensaje y construye una respuesta
-            String respuestaParaElCliente = procesarMensajeDelCliente(mensajeRecibido);
-
-            // manda la respuesta al cliente
-            flujoDeSalida.writeUTF(respuestaParaElCliente);
+            String respuestaParaElCliente = procesarMensajeDelCliente(mensajeRecibido); // procesa el mensaje
+            flujoDeSalida.writeUTF(respuestaParaElCliente); // responde al cliente
             flujoDeSalida.flush();
 
         } catch (IOException e) {
             System.out.println("Error al atender al cliente: " + e.getMessage());
         } finally {
-            cerrarConexion();
+            cerrarConexion(); // cierra la conexión al terminar
         }
     }
 
-
-    // ==========================================
-    // MÉTODO PARA PROCESAR MENSAJES
-    // ==========================================
-    // Este método interpreta el mensaje del cliente.
-    //
-    // Formatos esperados:
-    // LOGIN|nombreJugador
-    // HIT|nombreJugador|posicion
-    // DISCONNECT|nombreJugador
-
+    // =========================
+    // PROCESAMIENTO DE MENSAJES
+    // =========================
     private String procesarMensajeDelCliente(String mensajeCompleto) {
-
-        // si el mensaje viene vacío, se responde con error
         if (mensajeCompleto == null || mensajeCompleto.trim().isEmpty()) {
-            return "ERROR|Mensaje vacío";
+            return "ERROR|Mensaje vacío"; // evita procesar mensajes vacíos
         }
 
-        // separa el mensaje usando el carácter |
-        String[] partesDelMensaje = mensajeCompleto.split("\\|");
-
-        // obtiene el comando principal del mensaje
-        String tipoDeComando = obtenerTipoDeComando(partesDelMensaje);
+        String[] partesDelMensaje = mensajeCompleto.split("\\|"); // separa el mensaje por |
+        String tipoDeComando = obtenerTipoDeComando(partesDelMensaje); // obtiene el comando principal
 
         switch (tipoDeComando) {
-
             case "LOGIN":
-                return procesarLogin(partesDelMensaje);
+                return procesarLogin(partesDelMensaje); // procesa registro del jugador
 
             case "HIT":
-                return procesarGolpe(partesDelMensaje);
+                return procesarGolpe(partesDelMensaje); // procesa golpe al monstruo
 
             case "DISCONNECT":
-                return procesarDesconexion(partesDelMensaje);
+                return procesarDesconexion(partesDelMensaje); // procesa desconexión
 
             default:
                 return "ERROR|Comando no reconocido";
         }
     }
 
-
-    // ==========================================
-    // MÉTODO PARA OBTENER EL TIPO DE COMANDO
-    // ==========================================
-    // Este método toma la primera parte del mensaje
-    // y la normaliza para poder usarla en el switch
-
     private String obtenerTipoDeComando(String[] partesDelMensaje) {
-
         if (partesDelMensaje.length == 0 || partesDelMensaje[0] == null) {
-            return "";
+            return ""; // evita errores si el mensaje viene mal formado
         }
 
-        return partesDelMensaje[0].trim().toUpperCase();
+        return partesDelMensaje[0].trim().toUpperCase(); // normaliza el comando
     }
 
-
-    // ==========================================
-    // MÉTODO PARA LOGIN
-    // ==========================================
-    // Si el jugador no existe, lo agrega.
-    // Si ya existe, simplemente se mantiene en el estado del juego.
-
+    // =========================
+    // LOGIN
+    // =========================
     private String procesarLogin(String[] partesDelMensaje) {
-
-        // revisa que el mensaje tenga el formato correcto
         if (partesDelMensaje.length < 2) {
-            return "ERROR|Formato LOGIN inválido";
+            return "ERROR|Formato LOGIN inválido"; // valida formato mínimo
         }
 
-        String nombreDelJugador = partesDelMensaje[1].trim(); // nombre escrito por el jugador
+        String nombreDelJugador = partesDelMensaje[1].trim(); // obtiene el nombre del jugador
+        estadoActualDelJuego.agregarJugador(nombreDelJugador); // agrega al jugador si no existe
 
-        // agrega al jugador si todavía no existe
-        estadoActualDelJuego.agregarJugador(nombreDelJugador);
+        Player jugador = estadoActualDelJuego.obtenerJugador(nombreDelJugador); // obtiene el jugador
+        if (jugador != null) {
+            jugador.setConectado(true); // marca al jugador como conectado
+        }
 
         System.out.println("Jugador registrado o reconectado: " + nombreDelJugador);
 
-        // opcionalmente podrías publicar la lista de jugadores actualizada
-        // publicadorDeEventos.publicarJugadores(...);
-
-        return "LOGIN_OK|" + nombreDelJugador;
+        return "LOGIN_OK|" + nombreDelJugador; // responde login exitoso
     }
 
 
-    // ==========================================
-    // MÉTODO PARA PROCESAR GOLPES
-    // ==========================================
-    // Valida el golpe usando GameState.
-    // Si el golpe fue válido:
-    // - suma punto
-    // - revisa si hay ganador
-    // - publica eventos por ActiveMQ
-    // Si no fue válido:
-    // - responde con MISS
-
+    // =========================
+    // GOLPES
+    // =========================
     private String procesarGolpe(String[] partesDelMensaje) {
-
-        // revisa que el mensaje tenga el formato correcto
         if (partesDelMensaje.length < 3) {
-            return "ERROR|Formato HIT inválido";
+            return "ERROR|Formato HIT inválido"; // valida formato mínimo
         }
 
         String nombreDelJugador = partesDelMensaje[1].trim(); // nombre del jugador que golpeó
         int posicionGolpeada;
 
-        // intenta convertir la posición a número entero
         try {
-            posicionGolpeada = Integer.parseInt(partesDelMensaje[2].trim());
+            posicionGolpeada = Integer.parseInt(partesDelMensaje[2].trim()); // convierte la posición a entero
         } catch (NumberFormatException e) {
             return "ERROR|Posición inválida";
         }
 
-        // le pide a GameState que valide y procese el golpe
-        boolean golpeValido =
-                estadoActualDelJuego.procesarGolpeDelJugador(nombreDelJugador, posicionGolpeada);
+        boolean golpeValido = estadoActualDelJuego.procesarGolpe(nombreDelJugador, posicionGolpeada); // valida y procesa el golpe
 
-        // si el golpe no fue válido, responde MISS
         if (!golpeValido) {
             System.out.println("Golpe inválido de " + nombreDelJugador + " en posición " + posicionGolpeada);
-            return "MISS|" + nombreDelJugador;
+            return "MISS|" + nombreDelJugador; // responde que el golpe no fue válido
         }
 
-        // si el golpe sí fue válido, imprime información
         System.out.println("Golpe válido de " + nombreDelJugador + " en posición " + posicionGolpeada);
 
-        // publica que alguien golpeó correctamente
-        publicadorDeEventos.publicarGolpeValido(
-                nombreDelJugador,
-                estadoActualDelJuego.obtenerJugador(nombreDelJugador).getScore()
-        );
+        // aquí ya no publicamos manualmente WINNER o RESET
+        // eso lo hace MonsterPublisherActiveMQ usando el mismo GameState compartido
 
-        // revisa si ya hay ganador
-        if (estadoActualDelJuego.hayGanadorEnLaPartida()) {
-            String nombreDelGanador = estadoActualDelJuego.obtenerNombreGanador();
-
-            System.out.println("Tenemos ganador: " + nombreDelGanador);
-
-            // publica el ganador a todos los clientes
-            publicadorDeEventos.publicarGanador(nombreDelGanador);
-
-            // reinicia la partida para empezar otra
-            estadoActualDelJuego.reiniciarPartidaCompleta();
-
-            // publica el reinicio del juego
-            publicadorDeEventos.publicarReinicio();
-
-            return "HIT_OK|WINNER|" + nombreDelGanador;
+        if (estadoActualDelJuego.hayGanador()) {
+            return "HIT_OK|WINNER|" + estadoActualDelJuego.obtenerGanador(); // respuesta inmediata al cliente que ganó
         }
 
-        return "HIT_OK|" + nombreDelJugador;
+        return "HIT_OK|" + nombreDelJugador; // responde golpe correcto
     }
 
-
-    // ==========================================
-    // MÉTODO PARA DESCONECTAR UN JUGADOR
-    // ==========================================
-    // Por ahora solo informa la desconexión.
-    // Más adelante podrías marcar al jugador como desconectado.
-
+    // =========================
+    // DESCONEXIÓN
+    // =========================
     private String procesarDesconexion(String[] partesDelMensaje) {
-
-        // revisa que el mensaje tenga el formato correcto
         if (partesDelMensaje.length < 2) {
-            return "ERROR|Formato DISCONNECT inválido";
+            return "ERROR|Formato DISCONNECT inválido"; // valida formato mínimo
         }
 
-        String nombreDelJugador = partesDelMensaje[1].trim();
+        String nombreDelJugador = partesDelMensaje[1].trim(); // obtiene el nombre del jugador
+        Player jugador = estadoActualDelJuego.obtenerJugador(nombreDelJugador); // busca al jugador
+
+        if (jugador != null) {
+            jugador.setConectado(false); // lo marca como desconectado
+        }
 
         System.out.println("Jugador desconectado: " + nombreDelJugador);
 
-        return "BYE|" + nombreDelJugador;
+        return "BYE|" + nombreDelJugador; // responde despedida
     }
 
-
-    // ==========================================
-    // MÉTODO PARA CERRAR LA CONEXIÓN
-    // ==========================================
-    // Este método cierra correctamente el socket del cliente
-
+    // =========================
+    // CIERRE DE CONEXIÓN
+    // =========================
     private void cerrarConexion() {
-
         try {
-            if (flujoDeEntrada != null) {
-                flujoDeEntrada.close();
-            }
-
-            if (flujoDeSalida != null) {
-                flujoDeSalida.close();
-            }
-
-            if (socketDelCliente != null) {
-                socketDelCliente.close();
-            }
+            if (flujoDeEntrada != null) flujoDeEntrada.close(); // cierra entrada
+            if (flujoDeSalida != null) flujoDeSalida.close(); // cierra salida
+            if (socketDelCliente != null) socketDelCliente.close(); // cierra socket
 
         } catch (IOException e) {
             System.out.println("Error al cerrar la conexión: " + e.getMessage());
