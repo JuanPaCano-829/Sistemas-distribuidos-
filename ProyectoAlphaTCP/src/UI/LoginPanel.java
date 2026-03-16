@@ -19,14 +19,14 @@ public class LoginPanel extends JPanel {
         setLayout(new GridLayout(4, 1, 10, 10)); // usa un layout simple en columna
         setBorder(BorderFactory.createEmptyBorder(100, 100, 100, 100)); // agrega márgenes internos
 
-        JLabel title = new JLabel("Enter player name", JLabel.CENTER); // crea el título del panel
+        JLabel title = new JLabel("Escribe tu nombre aqui", JLabel.CENTER); // crea el título del panel
         nameField = new JTextField(); // crea el campo de texto
         JButton loginButton = new JButton("Login"); // crea el botón de entrada
 
         loginButton.addActionListener(e -> {
             String playerName = nameField.getText().trim(); // obtiene el texto escrito y le quita espacios
             if (playerName.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter your name"); // muestra error si está vacío
+                JOptionPane.showMessageDialog(this, "Tu nombre no puede ser vacio"); // muestra error si está vacío
                 return; // detiene la ejecución si no hay nombre
             }
 

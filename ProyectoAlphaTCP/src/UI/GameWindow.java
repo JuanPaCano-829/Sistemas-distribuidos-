@@ -68,7 +68,7 @@ public class GameWindow extends JFrame {
                 subscriberStarted = true; // marca que ya fue iniciado
             }
 
-            gamePanel.updateScore(score); // actualiza el score visual
+             // actualiza el score visual
             lobbyPanel.updatePlayers("Waiting for player list..."); // deja un mensaje temporal en el lobby
             lobbyPanel.setStartButtonEnabled(true); // habilita el botón para iniciar la partida
             showScreen("LOBBY"); // cambia a la pantalla del lobby
@@ -107,7 +107,7 @@ public class GameWindow extends JFrame {
             String[] parts = response.split("\\|"); // separa la respuesta del servidor
             if (parts.length >= 4) {
                 int score = Integer.parseInt(parts[3]); // obtiene el score actualizado
-                gamePanel.updateScore(score); // actualiza el score visual
+                 // actualiza el score visual
             }
             return; // no hace más porque el winner oficial llegará también por JMS
         }
@@ -116,7 +116,7 @@ public class GameWindow extends JFrame {
             String[] parts = response.split("\\|"); // separa la respuesta del servidor
             if (parts.length >= 3) {
                 int score = Integer.parseInt(parts[2]); // obtiene el score actualizado
-                gamePanel.updateScore(score); // actualiza el score visual
+                 // actualiza el score visual
             }
             return; // termina si fue golpe correcto
         }
@@ -168,22 +168,28 @@ public class GameWindow extends JFrame {
         }
 
         if (message.startsWith("PLAYERS:")) {
-            String players = message.substring("PLAYERS:".length()).trim(); // obtiene la cadena con jugadores
-            lobbyPanel.updatePlayers(formatPlayersText(players)); // actualiza el lobby con formato legible
+            String players = message.substring("PLAYERS:".length()).trim();
+            String formatted = formatPlayersText(players);
+            lobbyPanel.updatePlayers("Connected players:\n" + formatted);
+            gamePanel.updateAllScores(formatted);
         }
     }
 
     private String formatPlayersText(String players) {
-        if (players.isBlank()) return "Connected players:\n- No connected players"; // mensaje por defecto si no hay nadie conectado
+        if (players.isBlank()) return "- No connected players";
 
-        String[] names = players.split(","); // separa los nombres por coma
-        StringBuilder text = new StringBuilder("Connected players:\n"); // crea el encabezado del texto
+        String[] entries = players.split(",");
+        StringBuilder text = new StringBuilder();
 
-        for (String name : names) {
-            if (!name.trim().isEmpty()) text.append("- ").append(name.trim()).append("\n"); // agrega cada nombre en una línea
+        for (String entry : entries) {
+            if (!entry.trim().isEmpty()) {
+                String[] parts = entry.split(":");
+                String name = parts[0];
+                String score = parts.length > 1 ? parts[1] : "0";
+                text.append("- ").append(name).append(": ").append(score).append("\n");
+            }
         }
-
-        return text.toString(); // regresa el texto final para el lobby
+        return text.toString();
     }
 
     private void showError(String response) {
