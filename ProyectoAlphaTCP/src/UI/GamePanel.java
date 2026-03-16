@@ -1,87 +1,78 @@
 package UI;
-// Código para la clase GamePanel
-import javax.swing.*;
-import java.awt.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
 
 public class GamePanel extends JPanel {
 
-    private JButton[] botones;
-    private JLabel lblScore;
-    private int topoVisible = -1;
+    private final JButton[] buttons; // arreglo de botones del tablero
+    private final JLabel scoreLabel; // etiqueta para mostrar el score
+    private int visibleMonster = -1; // guarda la posición visible actual del monstruo
+    private final ImageIcon monsterGif; // imagen animada del monstruo
+    private final GameWindow window; // referencia a la ventana principal
 
-    private ImageIcon topoGif;
+    public GamePanel(GameWindow window) {
+        this.window = window; // guarda la referencia de la ventana
 
-    private GameWindow window;
+        setLayout(new BorderLayout()); // usa BorderLayout para distribuir componentes
+        monsterGif = new ImageIcon(getClass().getResource("/Assets/topo_saliendo.gif")); // carga el gif desde recursos
 
-    public GamePanel(GameWindow window){
+        JPanel topPanel = new JPanel(); // panel superior para score y salida
+        scoreLabel = new JLabel("Score: 0"); // etiqueta inicial del score
+        JButton exitButton = new JButton("Exit"); // botón de salida
 
-        this.window = window;
+        exitButton.addActionListener(e -> window.disconnectAndReturnToLogin()); // desconecta al jugador y vuelve al login
 
-        setLayout(new BorderLayout());
+        topPanel.add(scoreLabel); // agrega el score al panel superior
+        topPanel.add(exitButton); // agrega el botón de salida al panel superior
 
-        topoGif = new ImageIcon(getClass().getResource("/Assets/topo_saliendo.gif"));
+        JPanel board = new JPanel(new GridLayout(3, 3, 10, 10)); // crea el tablero 3x3
+        board.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50)); // agrega márgenes al tablero
 
-        JPanel panelTop = new JPanel();
+        buttons = new JButton[9]; // crea el arreglo para los 9 botones
 
-        lblScore = new JLabel("Score: 0");
+        for (int i = 0; i < 9; i++) {
+            JButton button = new JButton(); // crea un botón nuevo
+            button.setBackground(Color.LIGHT_GRAY); // le pone color gris claro
 
-        JButton btnVolver = new JButton("Salir");
+            int index = i; // guarda el índice para usarlo dentro del lambda
 
-        btnVolver.addActionListener(e -> {
-            window.mostrarPantalla("LOGIN");
-        });
+            button.addActionListener(e -> window.processCellClick(index)); // delega el clic a la ventana principal
 
-        panelTop.add(lblScore);
-        panelTop.add(btnVolver);
-
-        JPanel tablero = new JPanel(new GridLayout(3,3,10,10));
-        tablero.setBorder(BorderFactory.createEmptyBorder(30,50,30,50));
-
-        botones = new JButton[9];
-
-        for(int i = 0; i < 9; i++){
-
-            JButton b = new JButton();
-            b.setBackground(Color.LIGHT_GRAY);
-
-            int indice = i;
-
-            b.addActionListener(e -> {
-                window.procesarClickEnCasilla(indice); // solo le avisamos a la ventana qué casilla se presionó
-            });
-
-            botones[i] = b;
-            tablero.add(b);
+            buttons[i] = button; // guarda el botón en el arreglo
+            board.add(button); // agrega el botón al tablero
         }
 
-        add(panelTop, BorderLayout.NORTH);
-        add(tablero, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH); // agrega el panel superior
+        add(board, BorderLayout.CENTER); // agrega el tablero al centro
     }
 
-    public void mostrarTopo(int indice){
+    public void showMonster(int index) {
+        hideMonsters(); // limpia cualquier monstruo anterior
 
-        ocultarTopos();
-
-        if(indice >= 0 && indice < botones.length){
-            botones[indice].setIcon(topoGif);
-            topoVisible = indice;
+        if (index >= 0 && index < buttons.length) {
+            buttons[index].setIcon(monsterGif); // coloca el gif en la casilla indicada
+            visibleMonster = index; // actualiza la posición visible local
         }
     }
 
-    public void ocultarTopos(){
-
-        for(JButton b : botones){
-            b.setIcon(null);
-        }
-
-        topoVisible = -1;
+    public void hideMonsters() {
+        for (JButton button : buttons) button.setIcon(null); // quita cualquier icono de todas las casillas
+        visibleMonster = -1; // reinicia la posición visible
     }
 
-    public int getTopoVisible(){
-        return topoVisible;
+    public void updateScore(int score) {
+        scoreLabel.setText("Score: " + score); // actualiza el texto del score
     }
 
-    public void actualizarScore(int score){
-        lblScore.setText("Score: " + score);
+    public void resetBoard() {
+        hideMonsters(); // limpia el tablero
+        updateScore(0); // reinicia el score visual
     }
 }

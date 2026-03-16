@@ -1,19 +1,16 @@
 package Game;
-// Código para la clase Main
+
 import UI.GameWindow;
 import javax.swing.SwingUtilities;
 
-// AQUÍ IMPLEMENTAMOS UN REGISTRO LOG IN COMO RESPUESTA AL REGISTRO DEL TCP
 public class Main {
 
     public static void main(String[] args) {
-
-        System.out.println("Iniciando el Nodo del Juego...");
+        System.out.println("Starting game client..."); // mensaje de arranque del cliente
 
         SwingUtilities.invokeLater(() -> {
-            GameWindow ventana = new GameWindow();
-            ventana.setVisible(true);
-
+            GameWindow window = new GameWindow(); // crea la ventana principal
+            window.setVisible(true); // muestra la interfaz
         });
     }
 }

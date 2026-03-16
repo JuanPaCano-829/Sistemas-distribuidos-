@@ -1,122 +1,143 @@
 package Model;
-// Código para la clase GameState
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GameState {
 
-    private static final int PUNTOS_PARA_GANAR = 5; // puntos necesarios para ganar la partida
+    private static final int POINTS_TO_WIN = 5; // define los puntos necesarios para ganar
 
-    private final Map<String, Player> jugadores; // jugadores registrados
-    private final Monster monstruo; // monstruo actual del juego
-    private boolean rondaActiva; // indica si la ronda está abierta
-    private String ganador; // nombre del jugador ganador
+    private final Map<String, Player> players; // guarda todos los jugadores registrados
+    private final Monster monster; // guarda el monstruo compartido
+    private boolean roundActive; // indica si hay una ronda activa
+    private boolean gameStarted; // indica si la partida ya fue iniciada desde el lobby
+    private String winner; // guarda el nombre del ganador actual
 
     public GameState() {
-        jugadores = new HashMap<>(); // mapa donde se guardan los jugadores
-        monstruo = new Monster(); // crea el monstruo del juego
-        rondaActiva = false; // al inicio no hay ronda activa
-        ganador = null; // al inicio no hay ganador
-    }
-    // =========================
-    // MÉTODOS DE JUGADORES
-    // =========================
-    public boolean agregarJugador(String nombreJugador) {
-        if (jugadores.containsKey(nombreJugador)) return false; // evita duplicados
-
-        jugadores.put(nombreJugador, new Player(nombreJugador)); // crea y guarda el jugador
-        return true;
+        players = new HashMap<>(); // crea el mapa de jugadores
+        monster = new Monster(); // crea el monstruo del juego
+        roundActive = false; // al inicio no hay ronda activa
+        gameStarted = false; // al inicio el juego no ha comenzado
+        winner = null; // al inicio no hay ganador
     }
 
-    public Player obtenerJugador(String nombreJugador) {
-        return jugadores.get(nombreJugador); // regresa el jugador o null
+    public synchronized Player addOrReconnectPlayer(String playerName) {
+        if (playerName == null || playerName.trim().isEmpty()) return null; // evita nombres vacíos
+
+        String cleanName = playerName.trim(); // limpia espacios laterales
+        Player player = players.get(cleanName); // busca al jugador por nombre
+
+        if (player == null) {
+            player = new Player(cleanName); // crea un jugador nuevo si no existía
+            players.put(cleanName, player); // guarda al nuevo jugador en el mapa
+        } else {
+            player.setConnected(true); // si ya existía lo marca como reconectado
+        }
+
+        return player; // regresa el jugador creado o reconectado
     }
 
-    public Map<String, Player> obtenerJugadores() {
-        return Collections.unmodifiableMap(jugadores); // vista de solo lectura
+    public synchronized Player getPlayer(String playerName) {
+        return players.get(playerName); // regresa el jugador buscado
     }
 
-    // =========================
-    // MÉTODOS DE RONDA
-    // =========================
-    public int iniciarNuevaRonda() {
-        int posicion = monstruo.generarNuevaPosicion(); // genera posición aleatoria del monstruo
-        rondaActiva = true; // abre la ronda
-        return posicion;
+    public synchronized Map<String, Player> getPlayers() {
+        return Collections.unmodifiableMap(new HashMap<>(players)); // regresa una copia de solo lectura
     }
 
-    public int obtenerPosicionMonstruo() {
-        return monstruo.getPosicion(); // regresa la posición actual
+    public synchronized void startGame() {
+        gameStarted = true; // marca que la partida ya fue iniciada desde el lobby
     }
 
-    public boolean isRondaActiva() {
-        return rondaActiva; // indica si la ronda sigue activa
+    public synchronized boolean isGameStarted() {
+        return gameStarted; // regresa si la partida ya fue iniciada
     }
 
-    public Monster obtenerMonstruo() {
-        return monstruo; // regresa el monstruo actual
+    public synchronized int startNewRound() {
+        int position = monster.generateNewPosition(); // genera una nueva posición del monstruo
+        roundActive = true; // activa la ronda actual
+        return position; // regresa la nueva posición
     }
 
-    // =========================
-    // VALIDACIÓN DE GOLPES
-    // =========================
-    private boolean esGolpeValido(String nombreJugador, int posicionGolpeada) {
-        if (!jugadores.containsKey(nombreJugador)) return false; // jugador inexistente
-        if (!rondaActiva) return false; // ronda cerrada
-        if (!monstruo.estaVisible()) return false; // monstruo ya oculto
-        return posicionGolpeada == monstruo.getPosicion(); // valida posición correcta
+    public synchronized int getMonsterPosition() {
+        return monster.getPosition(); // regresa la posición actual del monstruo
     }
 
-    public synchronized boolean procesarGolpe(String nombreJugador, int posicionGolpeada) {
-        if (!esGolpeValido(nombreJugador, posicionGolpeada)) return false; // golpe inválido
-
-        Player jugador = jugadores.get(nombreJugador); // obtiene el jugador
-        jugador.sumarPunto(); // suma punto al jugador
-
-        monstruo.ocultar(); // oculta el monstruo
-        rondaActiva = false; // cierra la ronda
-
-        if (jugador.getScore() >= PUNTOS_PARA_GANAR) ganador = jugador.getNombre(); // revisa si ya ganó
-
-        return true;
+    public synchronized boolean isRoundActive() {
+        return roundActive; // regresa si hay una ronda activa
     }
 
-    // =========================
-    // GANADOR
-    // =========================
-    public boolean hayGanador() {
-        return ganador != null; // verifica si ya hay ganador
+    public synchronized boolean hasWinner() {
+        return winner != null; // indica si ya hay ganador
     }
 
-    public String obtenerGanador() {
-        return ganador; // regresa el nombre del ganador
+    public synchronized String getWinner() {
+        return winner; // regresa el nombre del ganador
     }
 
-    // =========================
-    // REINICIO DEL JUEGO
-    // =========================
-    public void reiniciarPartida() {
-        for (Player jugador : jugadores.values()) jugador.reiniciarScore(); // reinicia score de todos
-
-        monstruo.ocultar(); // oculta el monstruo
-        rondaActiva = false; // cierra la ronda
-        ganador = null; // elimina ganador
+    public synchronized int getPlayerScore(String playerName) {
+        Player player = players.get(playerName); // busca al jugador por nombre
+        return player == null ? 0 : player.getScore(); // devuelve su score o cero si no existe
     }
 
-    // =========================
-    // ESTADO DEL JUEGO
-    // =========================
+    public synchronized String getConnectedPlayersMessage() {
+        StringBuilder builder = new StringBuilder(); // construye el texto de jugadores conectados
+
+        for (Player player : players.values()) {
+            if (player.isConnected()) {
+                if (builder.length() > 0) builder.append(","); // separa nombres con coma
+                builder.append(player.getName()); // agrega el nombre del jugador conectado
+            }
+        }
+
+        return builder.toString(); // regresa la lista final
+    }
+
+    private boolean isValidHit(String playerName, int hitPosition) {
+        Player player = players.get(playerName); // obtiene al jugador que golpeó
+        if (player == null) return false; // invalida si no existe el jugador
+        if (!player.isConnected()) return false; // invalida si está desconectado
+        if (!gameStarted) return false; // invalida si la partida todavía no inicia
+        if (!roundActive) return false; // invalida si no hay ronda activa
+        if (!monster.isVisible()) return false; // invalida si el monstruo ya no está visible
+        return hitPosition == monster.getPosition(); // valida que la casilla coincida
+    }
+
+    public synchronized boolean processHit(String playerName, int hitPosition) {
+        if (!isValidHit(playerName, hitPosition)) return false; // corta si el golpe es inválido
+
+        Player player = players.get(playerName); // obtiene al jugador que acertó
+        player.addPoint(); // suma un punto al jugador
+
+        monster.hide(); // oculta el monstruo después de un acierto
+        roundActive = false; // cierra la ronda actual
+
+        if (player.getScore() >= POINTS_TO_WIN) winner = player.getName(); // revisa si ya ganó la partida
+
+        return true; // confirma que el golpe fue válido
+    }
+
+    public synchronized void resetMatch() {
+        for (Player player : players.values()) player.resetScore(); // reinicia el score de todos los jugadores
+
+        monster.hide(); // oculta al monstruo
+        roundActive = false; // deja la ronda inactiva
+        gameStarted = false; // regresa al lobby para que vuelvan a iniciar manualmente
+        winner = null; // elimina el ganador actual
+    }
+
     @Override
-    public String toString() {
-        StringBuilder texto = new StringBuilder("===== ESTADO DEL JUEGO =====\n");
-        for (Player jugador : jugadores.values())
-            texto.append(jugador).append("\n"); // agrega info de jugadores
+    public synchronized String toString() {
+        StringBuilder text = new StringBuilder("===== GAME STATE =====\n"); // crea encabezado de depuración
 
-        texto.append(monstruo).append("\n"); // agrega info del monstruo
-        texto.append("Ronda activa: ").append(rondaActiva).append("\n"); // estado de la ronda
-        texto.append("Ganador: ").append(ganador).append("\n"); // ganador actual
+        for (Player player : players.values()) text.append(player).append("\n"); // agrega cada jugador al texto
 
-        return texto.toString();
+        text.append(monster).append("\n"); // agrega el estado del monstruo
+        text.append("Round active: ").append(roundActive).append("\n"); // agrega estado de la ronda
+        text.append("Game started: ").append(gameStarted).append("\n"); // agrega estado de inicio de juego
+        text.append("Winner: ").append(winner).append("\n"); // agrega ganador actual
+
+        return text.toString(); // regresa el texto completo
     }
 }

@@ -1,61 +1,81 @@
 package Client;
-// Código para la clase MonsterSubscriberActiveMQ
-import jakarta.jms.*;
+
+import UI.GameWindow;
+import jakarta.jms.Connection;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.MessageListener;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
+import javax.swing.SwingUtilities;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class MonsterSubscriberActiveMQ implements MessageListener {
 
-    private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL;
-    private static final String TOPIC_NAME = "MONSTER_UPDATES";
-    private static final String SYSTEM_TOPIC = "GAME_SYSTEM";
+    private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL; // URL del broker
+    private static final String MONSTER_TOPIC = "MONSTER_UPDATES"; // topic de posiciones del monstruo
+    private static final String SYSTEM_TOPIC = "GAME_SYSTEM"; // topic de eventos del sistema
+
+    private final GameWindow window; // referencia a la ventana principal
+    private Connection connection; // conexión JMS
+    private Session session; // sesión JMS
+    private MessageConsumer monsterConsumer; // consumidor de posiciones
+    private MessageConsumer systemConsumer; // consumidor de mensajes del sistema
+    private boolean started; // evita iniciar dos veces el listener
+
+    public MonsterSubscriberActiveMQ(GameWindow window) {
+        this.window = window; // guarda la referencia de la ventana
+        this.started = false; // al inicio todavía no escucha
+    }
 
     public void startListening() {
-        ConnectionFactory factory = new ActiveMQConnectionFactory(URL);
+        if (started) return; // evita crear listeners duplicados
+
+        ConnectionFactory factory = new ActiveMQConnectionFactory(URL); // crea la fábrica JMS
 
         try {
-            Connection connection = factory.createConnection();
-            connection.start();
+            connection = factory.createConnection(); // crea la conexión
+            connection.start(); // activa la conexión
 
-            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE); // crea una sesión simple
+            Destination monsterDestination = session.createTopic(MONSTER_TOPIC); // obtiene el topic de monstruos
+            Destination systemDestination = session.createTopic(SYSTEM_TOPIC); // obtiene el topic del sistema
 
-            Destination monsterDest = session.createTopic(TOPIC_NAME);
-            MessageConsumer monsterConsumer = session.createConsumer(monsterDest);
-            monsterConsumer.setMessageListener(this);
+            monsterConsumer = session.createConsumer(monsterDestination); // crea consumidor del topic de monstruos
+            systemConsumer = session.createConsumer(systemDestination); // crea consumidor del topic del sistema
 
-            Destination systemDest = session.createTopic(SYSTEM_TOPIC);
-            MessageConsumer systemConsumer = session.createConsumer(systemDest);
-            systemConsumer.setMessageListener(this);
+            monsterConsumer.setMessageListener(this); // asigna este objeto como listener
+            systemConsumer.setMessageListener(this); // asigna este objeto como listener
 
-            System.out.println("Listening for game updates and system alerts...");
-
-            // Note: We do not close the connection here because the listener needs to remain active.
+            started = true; // marca el listener como iniciado
+            System.out.println("JMS subscriber started."); // mensaje de confirmación
 
         } catch (JMSException e) {
-            System.err.println("Connection error: " + e.getMessage());
+            System.err.println("JMS subscriber error: " + e.getMessage()); // muestra error de JMS
         }
     }
 
     @Override
     public void onMessage(Message message) {
         try {
-            if (message instanceof TextMessage textMessage) {
-                String text = textMessage.getText();
+            if (!(message instanceof TextMessage textMessage)) return; // ignora mensajes que no sean texto
 
-                if (text.startsWith("WINNER:") || text.equals("GAME_START")) {
-                    System.out.println("\n[SYSTEM ALERT]: " + text);
-                    // Trigger GUI reset or show winner dialog
-                } else {
-                    System.out.println("Monster appeared at position: " + text);
-                    // Trigger GUI to draw the monster at parsed Integer.parseInt(text)
-                }
+            String text = textMessage.getText(); // obtiene el contenido del mensaje
+
+            if (text.startsWith("WINNER:") || text.equals("GAME_START") || text.startsWith("PLAYERS:")) {
+                SwingUtilities.invokeLater(() -> window.handleSystemMessage(text)); // actualiza Swing en el hilo correcto
+                return; // termina el procesamiento del mensaje
             }
-        } catch (JMSException e) {
-            System.err.println("Error reading message: " + e.getMessage());
-        }
-    }
 
-    public static void main(String[] args) {
-        new MonsterSubscriberActiveMQ().startListening();
+            int position = Integer.parseInt(text); // convierte la posición recibida a entero
+            SwingUtilities.invokeLater(() -> window.handleMonsterPosition(position)); // actualiza la UI con la nueva posición
+
+        } catch (JMSException | NumberFormatException e) {
+            System.err.println("JMS message error: " + e.getMessage()); // muestra error al procesar mensaje
+        }
     }
 }

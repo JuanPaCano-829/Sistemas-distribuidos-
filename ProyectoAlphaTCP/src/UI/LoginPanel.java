@@ -1,41 +1,44 @@
 package UI;
-// Código para la clase LoginPanel
-import javax.swing.*;
-import java.awt.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import java.awt.GridLayout;
 
 public class LoginPanel extends JPanel {
 
-    private JTextField txtNombre;
-    private GameWindow window;
+    private final JTextField nameField; // campo para escribir el nombre
+    private final GameWindow window; // referencia a la ventana principal
 
     public LoginPanel(GameWindow window) {
+        this.window = window; // guarda la referencia de la ventana
 
-        this.window = window;
+        setLayout(new GridLayout(4, 1, 10, 10)); // usa un layout simple en columna
+        setBorder(BorderFactory.createEmptyBorder(100, 100, 100, 100)); // agrega márgenes internos
 
-        setLayout(new GridLayout(4,1,10,10));
-        setBorder(BorderFactory.createEmptyBorder(100,100,100,100));
+        JLabel title = new JLabel("Enter player name", JLabel.CENTER); // crea el título del panel
+        nameField = new JTextField(); // crea el campo de texto
+        JButton loginButton = new JButton("Login"); // crea el botón de entrada
 
-        JLabel titulo = new JLabel("Ingresar nombre", SwingConstants.CENTER);
-
-        txtNombre = new JTextField();
-
-        JButton btnEntrar = new JButton("Entrar");
-
-        btnEntrar.addActionListener(e -> {
-            if(txtNombre.getText().trim().isEmpty()){
-                JOptionPane.showMessageDialog(this,"Escribe tu nombre");
-                return;
+        loginButton.addActionListener(e -> {
+            String playerName = nameField.getText().trim(); // obtiene el texto escrito y le quita espacios
+            if (playerName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter your name"); // muestra error si está vacío
+                return; // detiene la ejecución si no hay nombre
             }
 
-            window.mostrarPantalla("LOBBY");
+            window.login(playerName); // manda el login real a la ventana principal
         });
 
-        add(titulo);
-        add(txtNombre);
-        add(btnEntrar);
+        add(title); // agrega el título al panel
+        add(nameField); // agrega el campo de texto
+        add(loginButton); // agrega el botón
     }
 
-    public String getNombreJugador(){
-        return txtNombre.getText();
+    public void clearFields() {
+        nameField.setText(""); // limpia el campo de nombre
     }
 }

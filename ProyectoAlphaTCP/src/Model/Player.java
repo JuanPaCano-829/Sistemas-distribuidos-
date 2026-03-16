@@ -1,56 +1,43 @@
 package Model;
-// Código para la clase Player
+
 public class Player {
 
-    private String nombre; // nombre del jugador
-    private int score; // puntos acumulados en la partida
-    private boolean conectado; // indica si el jugador sigue conectado
+    private final String name; // guarda el nombre del jugador
+    private int score; // guarda el puntaje actual
+    private boolean connected; // indica si el jugador está conectado
 
-    public Player(String nombre) {
-        this.nombre = nombre; // guarda el nombre del jugador
-        this.score = 0; // score inicial
-        this.conectado = true; // al crearse se asume conectado
+    public Player(String name) {
+        this.name = name; // asigna el nombre del jugador
+        this.score = 0; // inicia score en cero
+        this.connected = true; // al crearse se considera conectado
     }
 
-    // =========================
-    // MÉTODOS GET
-    // =========================
-    public String getNombre() {
-        return nombre; // regresa el nombre
+    public String getName() {
+        return name; // regresa el nombre del jugador
     }
 
     public int getScore() {
-        return score; // regresa el score actual
+        return score; // regresa el puntaje actual
     }
 
-    public boolean estaConectado() {
-        return conectado; // indica si el jugador sigue conectado
+    public boolean isConnected() {
+        return connected; // regresa el estado de conexión
     }
 
-    // =========================
-    // MÉTODOS SET
-    // =========================
-    public void setConectado(boolean estado) {
-        conectado = estado; // cambia el estado de conexión
+    public void setConnected(boolean connected) {
+        this.connected = connected; // cambia el estado de conexión
     }
 
-
-    // =========================
-    // LÓGICA DEL JUEGO
-    // =========================
-    public void sumarPunto() {
-        score++; // incrementa el score en 1
+    public void addPoint() {
+        score++; // incrementa el score en uno
     }
 
-    public void reiniciarScore() {
-        score = 0; // reinicia el score del jugador
+    public void resetScore() {
+        score = 0; // reinicia el score a cero
     }
 
-    // =========================
-    // INFORMACIÓN DEL OBJETO
-    // =========================
     @Override
     public String toString() {
-        return "Jugador: " + nombre + " | Score: " + score + " | Conectado: " + conectado;
+        return "Player: " + name + " | Score: " + score + " | Connected: " + connected; // regresa texto descriptivo
     }
 }
