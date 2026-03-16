@@ -1,6 +1,7 @@
 package Server;
 
-import Model.GameState; // importar la clase GameState
+import Model.GameState;
+import Model.Player;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -9,16 +10,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class MonsterHitServerTCP {
-
     private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde escucha el servidor
-
-    private static GameState estadoActualDelJuego; // estado global de la partida
-    private static MonsterPublisherActiveMQ publicadorDeEventos; // publicador de eventos por ActiveMQ
+    private static GameState estadoActualDelJuego; // estado global compartido
+    private static MonsterPublisherActiveMQ publicadorDeEventos; // publisher de ActiveMQ
 
     public static void main(String[] args) {
         try {
-            estadoActualDelJuego = new GameState(); // crea el estado global del juego
-            publicadorDeEventos = new MonsterPublisherActiveMQ(); // crea el publicador de eventos
+            estadoActualDelJuego = new GameState(); // crea el estado global compartido
+            publicadorDeEventos = new MonsterPublisherActiveMQ(estadoActualDelJuego); // usa el mismo GameState
+
+            // inicia el publisher en segundo plano
+            Thread hiloPublisher = new Thread(() -> publicadorDeEventos.startPublishing());
+            hiloPublisher.start();
+
             ServerSocket socketServidor = new ServerSocket(PUERTO_SERVIDOR_TCP); // abre el puerto TCP
 
             System.out.println("==========================================");
@@ -32,7 +36,7 @@ public class MonsterHitServerTCP {
                 System.out.println("Nuevo cliente conectado desde: " + socketDelCliente.getInetAddress());
 
                 ConnectionHandler manejadorDeConexion =
-                        new ConnectionHandler(socketDelCliente, estadoActualDelJuego, publicadorDeEventos); // crea un hilo para atender a ese cliente
+                        new ConnectionHandler(socketDelCliente, estadoActualDelJuego); // crea un hilo para atender a ese cliente
 
                 manejadorDeConexion.start(); // inicia el hilo del cliente
             }
@@ -44,22 +48,17 @@ public class MonsterHitServerTCP {
 }
 
 class ConnectionHandler extends Thread {
-    private final Socket socketDelCliente; // socket específico de este cliente
-    private final DataInputStream flujoDeEntrada; // para leer mensajes del cliente
-    private final DataOutputStream flujoDeSalida; // para responder al cliente
-    private final GameState estadoActualDelJuego; // referencia al estado global del juego
-    private final MonsterPublisherActiveMQ publicadorDeEventos; // referencia al publicador de ActiveMQ
+    private final Socket socketDelCliente; // socket de este cliente
+    private final DataInputStream flujoDeEntrada; // flujo para leer mensajes
+    private final DataOutputStream flujoDeSalida; // flujo para responder
+    private final GameState estadoActualDelJuego; // referencia al estado compartido
 
-    public ConnectionHandler(Socket socketCliente,
-                             GameState gameStateCompartido,
-                             MonsterPublisherActiveMQ publicadorCompartido) throws IOException {
-
+    public ConnectionHandler(Socket socketCliente, GameState gameStateCompartido) throws IOException {
         socketDelCliente = socketCliente; // guarda el socket del cliente
-        estadoActualDelJuego = gameStateCompartido; // guarda la referencia al estado del juego
-        publicadorDeEventos = publicadorCompartido; // guarda la referencia al publicador
+        estadoActualDelJuego = gameStateCompartido; // guarda el estado compartido
 
-        flujoDeEntrada = new DataInputStream(socketDelCliente.getInputStream()); // flujo para leer
-        flujoDeSalida = new DataOutputStream(socketDelCliente.getOutputStream()); // flujo para responder
+        flujoDeEntrada = new DataInputStream(socketDelCliente.getInputStream()); // flujo de entrada
+        flujoDeSalida = new DataOutputStream(socketDelCliente.getOutputStream()); // flujo de salida
     }
 
     @Override
@@ -124,10 +123,16 @@ class ConnectionHandler extends Thread {
         String nombreDelJugador = partesDelMensaje[1].trim(); // obtiene el nombre del jugador
         estadoActualDelJuego.agregarJugador(nombreDelJugador); // agrega al jugador si no existe
 
+        Player jugador = estadoActualDelJuego.obtenerJugador(nombreDelJugador); // obtiene el jugador
+        if (jugador != null) {
+            jugador.setConectado(true); // marca al jugador como conectado
+        }
+
         System.out.println("Jugador registrado o reconectado: " + nombreDelJugador);
 
         return "LOGIN_OK|" + nombreDelJugador; // responde login exitoso
     }
+
 
     // =========================
     // GOLPES
@@ -155,21 +160,11 @@ class ConnectionHandler extends Thread {
 
         System.out.println("Golpe válido de " + nombreDelJugador + " en posición " + posicionGolpeada);
 
-        publicadorDeEventos.publicarGolpeValido(
-                nombreDelJugador,
-                estadoActualDelJuego.obtenerJugador(nombreDelJugador).getScore()
-        ); // publica el golpe válido a los demás clientes
+        // aquí ya no publicamos manualmente WINNER o RESET
+        // eso lo hace MonsterPublisherActiveMQ usando el mismo GameState compartido
 
         if (estadoActualDelJuego.hayGanador()) {
-            String nombreDelGanador = estadoActualDelJuego.obtenerGanador(); // obtiene el ganador actual
-
-            System.out.println("Tenemos ganador: " + nombreDelGanador);
-
-            publicadorDeEventos.publicarGanador(nombreDelGanador); // publica ganador
-            estadoActualDelJuego.reiniciarPartida(); // reinicia la partida
-            publicadorDeEventos.publicarReinicio(); // publica reinicio del juego
-
-            return "HIT_OK|WINNER|" + nombreDelGanador; // responde que hubo ganador
+            return "HIT_OK|WINNER|" + estadoActualDelJuego.obtenerGanador(); // respuesta inmediata al cliente que ganó
         }
 
         return "HIT_OK|" + nombreDelJugador; // responde golpe correcto
@@ -184,12 +179,16 @@ class ConnectionHandler extends Thread {
         }
 
         String nombreDelJugador = partesDelMensaje[1].trim(); // obtiene el nombre del jugador
+        Player jugador = estadoActualDelJuego.obtenerJugador(nombreDelJugador); // busca al jugador
+
+        if (jugador != null) {
+            jugador.setConectado(false); // lo marca como desconectado
+        }
 
         System.out.println("Jugador desconectado: " + nombreDelJugador);
 
         return "BYE|" + nombreDelJugador; // responde despedida
     }
-
 
     // =========================
     // CIERRE DE CONEXIÓN
