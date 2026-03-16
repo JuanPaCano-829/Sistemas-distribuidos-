@@ -4,7 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class Client {
+public class MonsterHitClientTCP {
 
     // Usamos un método estático para poder llamarlo desde cualquier parte sin instanciarlo
     public static void enviarMensaje(String ipDestino, int puertoDestino, String mensaje) {

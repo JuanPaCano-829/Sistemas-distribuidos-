@@ -6,12 +6,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 // Heredamos de Thread para que escuche en el fondo sin congelar tu ventana
-public class Server extends Thread {
+public class MonsterHitServerTCP extends Thread {
 
     private int puerto;
     private boolean escuchando;
 
-    public Server(int puerto) {
+    public MonsterHitServerTCP(int puerto) {
         this.puerto = puerto;
         this.escuchando = true;
     }
