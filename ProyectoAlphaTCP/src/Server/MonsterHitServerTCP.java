@@ -10,12 +10,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class MonsterHitServerTCP {
-
     private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde escucha el servidor
-
     private static GameState estadoActualDelJuego; // estado global compartido
     private static MonsterPublisherActiveMQ publicadorDeEventos; // publisher de ActiveMQ
-
 
     public static void main(String[] args) {
         try {
@@ -50,9 +47,7 @@ public class MonsterHitServerTCP {
     }
 }
 
-
 class ConnectionHandler extends Thread {
-
     private final Socket socketDelCliente; // socket de este cliente
     private final DataInputStream flujoDeEntrada; // flujo para leer mensajes
     private final DataOutputStream flujoDeSalida; // flujo para responder
@@ -66,7 +61,6 @@ class ConnectionHandler extends Thread {
         flujoDeEntrada = new DataInputStream(socketDelCliente.getInputStream()); // flujo de entrada
         flujoDeSalida = new DataOutputStream(socketDelCliente.getOutputStream()); // flujo de salida
     }
-
 
     @Override
     public void run() {
@@ -85,11 +79,9 @@ class ConnectionHandler extends Thread {
         }
     }
 
-
     // =========================
     // PROCESAMIENTO DE MENSAJES
     // =========================
-
     private String procesarMensajeDelCliente(String mensajeCompleto) {
         if (mensajeCompleto == null || mensajeCompleto.trim().isEmpty()) {
             return "ERROR|Mensaje vacío"; // evita procesar mensajes vacíos
@@ -121,11 +113,9 @@ class ConnectionHandler extends Thread {
         return partesDelMensaje[0].trim().toUpperCase(); // normaliza el comando
     }
 
-
     // =========================
     // LOGIN
     // =========================
-
     private String procesarLogin(String[] partesDelMensaje) {
         if (partesDelMensaje.length < 2) {
             return "ERROR|Formato LOGIN inválido"; // valida formato mínimo
@@ -144,11 +134,9 @@ class ConnectionHandler extends Thread {
         return "LOGIN_OK|" + nombreDelJugador; // responde login exitoso
     }
 
-
     // =========================
     // GOLPES
     // =========================
-
     private String procesarGolpe(String[] partesDelMensaje) {
         if (partesDelMensaje.length < 3) {
             return "ERROR|Formato HIT inválido"; // valida formato mínimo
@@ -182,11 +170,9 @@ class ConnectionHandler extends Thread {
         return "HIT_OK|" + nombreDelJugador; // responde golpe correcto
     }
 
-
     // =========================
     // DESCONEXIÓN
     // =========================
-
     private String procesarDesconexion(String[] partesDelMensaje) {
         if (partesDelMensaje.length < 2) {
             return "ERROR|Formato DISCONNECT inválido"; // valida formato mínimo
@@ -204,11 +190,9 @@ class ConnectionHandler extends Thread {
         return "BYE|" + nombreDelJugador; // responde despedida
     }
 
-
     // =========================
     // CIERRE DE CONEXIÓN
     // =========================
-
     private void cerrarConexion() {
         try {
             if (flujoDeEntrada != null) flujoDeEntrada.close(); // cierra entrada

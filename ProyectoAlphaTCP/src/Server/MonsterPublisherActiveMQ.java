@@ -7,7 +7,6 @@ import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class MonsterPublisherActiveMQ {
-
     private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL;
     private static final String TOPIC_NAME = "MONSTER_UPDATES";
     private static final String SYSTEM_TOPIC = "GAME_SYSTEM";
@@ -39,7 +38,6 @@ public class MonsterPublisherActiveMQ {
 
     private void publishLoop(Session session, MessageProducer producer, Destination monsterDest, Destination systemDest)
             throws JMSException, InterruptedException {
-
         sendMessage(session, producer, systemDest, "GAME_START"); // avisa que empezó el juego
 
         while (true) {
