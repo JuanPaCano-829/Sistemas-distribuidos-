@@ -38,6 +38,6 @@ public class Player {
 
     @Override
     public String toString() {
-        return "Player: " + name + " | Score: " + score + " | Connected: " + connected; // regresa texto descriptivo
+        return "Player: " + name + " | Score: " + score + " | Connected: " + connected;
     }
 }

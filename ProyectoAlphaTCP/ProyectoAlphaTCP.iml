@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="activemq-broker-6.2.0" level="application" />
+    <orderEntry type="library" name="activemq-protobuf-1.1" level="project" />
   </component>
 </module>

@@ -65,20 +65,20 @@ public class MonsterPublisherActiveMQ {
             Thread.sleep(1500); // espera antes de revisar la siguiente ronda
 
             if (gameState.hasWinner()) {
-                String winner = gameState.getWinner(); // obtiene al ganador actual
+                String winner = gameState.getWinner();
                 sendMessage(session, producer, systemDestination, "WINNER:" + winner); // publica el ganador
-                System.out.println("Winner published: " + winner); // imprime el ganador
+                System.out.println("Winner published: " + winner);
 
                 Thread.sleep(5000); // deja tiempo para que todos vean el resultado
-                gameState.resetMatch(); // reinicia la partida y regresa al lobby
+                gameState.resetMatch();
                 sendMessage(session, producer, systemDestination, "PLAYERS:" + gameState.getConnectedPlayersMessage()); // publica otra vez la lista de jugadores
-                System.out.println("Game restarted and returned to lobby."); // imprime el reinicio
+                System.out.println("Game restarted and returned to lobby.");
             }
         }
     }
 
     private void sendMessage(Session session, MessageProducer producer, Destination destination, String text) throws JMSException {
-        TextMessage message = session.createTextMessage(text); // crea un mensaje de texto
+        TextMessage message = session.createTextMessage(text);
         producer.send(destination, message); // envía el mensaje al topic indicado
     }
 }

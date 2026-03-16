@@ -6,11 +6,11 @@ import javax.swing.SwingUtilities;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Starting game client..."); // mensaje de arranque del cliente
+        System.out.println("Starting game client...");
 
         SwingUtilities.invokeLater(() -> {
-            GameWindow window = new GameWindow(); // crea la ventana principal
-            window.setVisible(true); // muestra la interfaz
+            GameWindow window = new GameWindow();
+            window.setVisible(true);
         });
     }
 }

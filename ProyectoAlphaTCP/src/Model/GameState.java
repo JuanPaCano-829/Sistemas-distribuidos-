@@ -29,7 +29,7 @@ public class GameState {
         Player player = players.get(cleanName); // busca al jugador por nombre
 
         if (player == null) {
-            player = new Player(cleanName); // crea un jugador nuevo si no existía
+            player = new Player(cleanName);
             players.put(cleanName, player); // guarda al nuevo jugador en el mapa
         } else {
             player.setConnected(true); // si ya existía lo marca como reconectado
@@ -40,10 +40,6 @@ public class GameState {
 
     public synchronized Player getPlayer(String playerName) {
         return players.get(playerName); // regresa el jugador buscado
-    }
-
-    public synchronized Map<String, Player> getPlayers() {
-        return Collections.unmodifiableMap(new HashMap<>(players)); // regresa una copia de solo lectura
     }
 
     public synchronized void startGame() {
@@ -60,14 +56,6 @@ public class GameState {
         return position; // regresa la nueva posición
     }
 
-    public synchronized int getMonsterPosition() {
-        return monster.getPosition(); // regresa la posición actual del monstruo
-    }
-
-    public synchronized boolean isRoundActive() {
-        return roundActive; // regresa si hay una ronda activa
-    }
-
     public synchronized boolean hasWinner() {
         return winner != null; // indica si ya hay ganador
     }
@@ -82,16 +70,14 @@ public class GameState {
     }
 
     public synchronized String getConnectedPlayersMessage() {
-        StringBuilder builder = new StringBuilder(); // construye el texto de jugadores conectados
-
+        StringBuilder builder = new StringBuilder();
         for (Player player : players.values()) {
             if (player.isConnected()) {
-                if (builder.length() > 0) builder.append(","); // separa nombres con coma
-                builder.append(player.getName()); // agrega el nombre del jugador conectado
+                if (builder.length() > 0) builder.append(",");
+                builder.append(player.getName()).append(":").append(player.getScore());
             }
         }
-
-        return builder.toString(); // regresa la lista final
+        return builder.toString();
     }
 
     private boolean isValidHit(String playerName, int hitPosition) {

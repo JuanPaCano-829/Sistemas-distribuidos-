@@ -22,11 +22,9 @@ public class MonsterHitServerTCP {
         publisherThread.start(); // inicia el hilo del publisher
 
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
-            System.out.println("=========================================="); // imprime separador visual
             System.out.println("MonsterHit TCP server started"); // mensaje principal del servidor
             System.out.println("Port: " + SERVER_PORT); // imprime el puerto del servidor
             System.out.println("Waiting for clients..."); // indica que el servidor está listo
-            System.out.println("=========================================="); // imprime separador visual
 
             while (true) {
                 Socket clientSocket = serverSocket.accept(); // espera una nueva conexión
@@ -47,7 +45,7 @@ class ConnectionHandler extends Thread {
     private final Socket clientSocket; // socket de este cliente
     private final DataInputStream input; // flujo para leer mensajes
     private final DataOutputStream output; // flujo para responder mensajes
-    private final GameState gameState; // estado compartido del juego
+    private final GameState gameState;
 
     public ConnectionHandler(Socket clientSocket, GameState gameState) throws IOException {
         this.clientSocket = clientSocket; // guarda el socket del cliente
@@ -106,7 +104,6 @@ class ConnectionHandler extends Thread {
         if (parts.length < 2) return "ERROR|Invalid LOGIN format"; // valida estructura mínima
 
         String playerName = parts[1].trim(); // obtiene el nombre del jugador
-        if (playerName.isEmpty()) return "ERROR|Empty player name"; // evita nombres vacíos
 
         Player player = gameState.addOrReconnectPlayer(playerName); // registra o reconecta al jugador
         if (player == null) return "ERROR|Could not register player"; // valida que sí se haya creado o reconectado
