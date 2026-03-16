@@ -1,43 +1,51 @@
 package Server;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
+import java.io.*;
 
 // Heredamos de Thread para que escuche en el fondo sin congelar tu ventana
 public class MonsterHitServerTCP extends Thread {
-
-    private int puerto;
-    private boolean escuchando;
-
-    public MonsterHitServerTCP(int puerto) {
-        this.puerto = puerto;
-        this.escuchando = true;
-    }
-
-    @Override
-    public void run() {
-        // Abrimos el ServerSocket en el puerto indicado (ej. 5000)
-        try (ServerSocket serverSocket = new ServerSocket(puerto)) {
-            System.out.println("✅ NODO INICIADO: Escuchando en el puerto " + puerto + "...");
-
-            while (escuchando) {
-                // El programa se "pausa" en esta línea hasta que alguien se conecta
-                Socket socketCliente = serverSocket.accept();
-
-                // Alguien se conectó, preparamos el canal para leer su mensaje
-                DataInputStream in = new DataInputStream(socketCliente.getInputStream());
-
-                // Leemos el texto que nos mandaron
-                String mensajeRecibido = in.readUTF();
-                System.out.println("📩 MENSAJE ENTRANTE: " + mensajeRecibido);
-
-                // En P2P, recibimos el golpe/mensaje y cerramos rápido la conexión
-                socketCliente.close();
+    public static void main(String args[]) {
+        try {
+            int serverPort = 49152;
+            // 1. EL SOCKET "ESCUCHA" (ServerSocket)
+            ServerSocket listenSocket = new ServerSocket(serverPort);
+            while (true) {
+                System.out.println("Esperando al golpe...");
+                // 2. ACEPTAR LA CONEXIÓN (Bloqueante)
+                Socket clientSocket = listenSocket.accept();  // Listens for a connection to be made to this socket and accepts it. The method blocks until a connection is made.
+                ConnectionHandler ch = new ConnectionHandler(clientSocket);
+                ch.start();
             }
         } catch (IOException e) {
-            System.out.println("❌ Error en el servidor TCP: " + e.getMessage());
+            System.out.println("Listen :" + e.getMessage());
         }
     }
+
 }
+
+    class ConnectionHandler extends Thread {
+        private DataInputStream in;
+        private DataOutputStream out;
+        private Socket clientSocket;
+
+        // CONSTRUCTOR: Prepara las herramientas
+        public ConnectionHandler(Socket aClientSocket) {
+            try {
+                clientSocket = aClientSocket;
+                // Configura los "tubos" de comunicación para este cliente específico
+                in = new DataInputStream(clientSocket.getInputStream());
+                out = new DataOutputStream(clientSocket.getOutputStream());
+            } catch (IOException e) {
+                System.out.println("Connection:" + e.getMessage());
+            }
+        }
+    }
+
+    class UpdateGameState extends Thread {
+
+    }
+
+    class ConnectActiveMQ extends Thread {
+
+    }
