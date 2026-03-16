@@ -13,6 +13,8 @@ import java.util.Map;
 // - el monstruo actual
 // - si la ronda actual sigue activa
 // - quién ganó la partida
+// To handle dynamic players and persistent scores, we must utilize the GameState class
+// MonsterHitServerTCP handles the incoming hits and updates the gamestate obj
 // ==========================================
 
 public class GameState {
