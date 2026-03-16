@@ -6,56 +6,62 @@ import java.awt.*;
 public class GameWindow extends JFrame {
 
     // Administrador de vistas
-    private CardLayout cardLayout;
-    private JPanel panelPrincipal;
+    private CardLayout cardLayout; // manejar pantallas dentro de la misma ventan
+    private JPanel panelPrincipal; // contenedor de pantallas
 
     // Componentes que necesitamos controlar desde fuera
-    private JButton[] botonesTopos;
-    private JLabel lblScore;
-    private JTextArea areaJugadores;
-    private JTextField txtNombre;
-    private JSpinner spinVelocidad;
-    private JTextField txtCodigo;
+    private JButton[] botonesTopos; // arreglo de 9 botones
+    private JLabel lblScore; // txt para el score
+    private JTextArea areaJugadores; // donde aparecen los jugadores conectados
+    private JTextField txtNombre; // donde el jugador escribe su nombre
+    private JSpinner spinVelocidad; // valor de la velocidad del juego
+    private JTextField txtCodigo; // para escribir el IP del host para unirte a la partida
 
     // Para recordar qué topo está visible
-    private int topoVisible = -1;
+    private int topoVisible = -1; // boton que tiene el topo
 
-    public GameWindow() {
-        setTitle("Pegarle al Topo - Alpha");
-        setSize(500, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    public GameWindow() { // para construir la ventana
+        setTitle("Pegarle al Topo - Proyecto Alpha - Juan Pablo y Giuseppe"); // nombre de la ventana
+        setSize(500, 600); // ancho y alto de la ventana
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // cuando cierras la ventana el programa termina
+        setLocationRelativeTo(null); // ventana en el centro de la pantalla
 
         cardLayout = new CardLayout();
         panelPrincipal = new JPanel(cardLayout);
 
+        // pantallas dentro del menu
         panelPrincipal.add(crearPanelMenu(), "MENU");
         panelPrincipal.add(crearPanelSolitario(), "SOLITARIO");
         panelPrincipal.add(crearPanelLobby(), "LOBBY");
         panelPrincipal.add(crearPanelUnirse(), "UNIRSE");
 
+        // se agrega el panel dentro de la ventana
         add(panelPrincipal);
 
+        // se muestra el menu principal
         cardLayout.show(panelPrincipal, "MENU");
     }
 
     // ==========================================
     // PÁGINA 1: MENÚ PRINCIPAL
     // ==========================================
-    private JPanel crearPanelMenu() {
-        JPanel panel = new JPanel(new GridLayout(4, 1, 20, 20));
+    private JPanel crearPanelMenu() { // construye la pantalla Menu
+        JPanel panel = new JPanel(new GridLayout(4, 1, 20, 20)); // para crear las ociones son 4 renglones y 1 columna
         panel.setBorder(BorderFactory.createEmptyBorder(100, 100, 100, 100));
 
-        JLabel titulo = new JLabel("PÉGARLE AL TOPO", SwingConstants.CENTER);
-        titulo.setFont(new Font("Arial", Font.BOLD, 24));
+        JLabel titulo = new JLabel("¡Pégale al monstruo!", SwingConstants.CENTER);
+        titulo.setFont(new Font("Comic Sans", Font.BOLD, 24));
 
-        JButton btnJugar = new JButton("1. Jugar (Solitario)");
-        JButton btnHost = new JButton("2. Multijugador (Crear Sala)");
-        JButton btnUnirse = new JButton("3. Unirse a Partida");
+        // Botones del menu principal
+        JButton btnJugar = new JButton("1) Modo un jugador");
+        JButton btnHost = new JButton("2) Modo Multijugado - Crear Sala");
+        JButton btnUnirse = new JButton("3) Unirse a Partida");
 
+        // cuando presiones el boton a donde va
         btnJugar.addActionListener(e -> cardLayout.show(panelPrincipal, "SOLITARIO"));
         btnHost.addActionListener(e -> cardLayout.show(panelPrincipal, "LOBBY"));
         btnUnirse.addActionListener(e -> cardLayout.show(panelPrincipal, "UNIRSE"));
+
 
         panel.add(titulo);
         panel.add(btnJugar);
@@ -71,11 +77,12 @@ public class GameWindow extends JFrame {
     private JPanel crearPanelSolitario() {
         JPanel panel = new JPanel(new BorderLayout());
 
+        // panel para los controles
         JPanel panelControles = new JPanel(new GridLayout(2, 4, 5, 5));
         panelControles.setBorder(BorderFactory.createTitledBorder("Configuración"));
 
         panelControles.add(new JLabel("Nombre:"));
-        txtNombre = new JTextField("Jugador1");
+        txtNombre = new JTextField("Escribe tu nombre...");
         panelControles.add(txtNombre);
 
         panelControles.add(new JLabel("Velocidad (1-10):"));
@@ -88,6 +95,8 @@ public class GameWindow extends JFrame {
         panelControles.add(lblScore);
 
         JButton btnIniciar = new JButton("¡Iniciar Partida!");
+
+        // Cuando presionas pasa lo siguiente
         btnIniciar.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Partida iniciada para: " + obtenerNombreJugador());
             actualizarScore(0);
@@ -102,8 +111,10 @@ public class GameWindow extends JFrame {
         JPanel panelTopos = new JPanel(new GridLayout(3, 3, 10, 10));
         panelTopos.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
+        // crea el arreglo de 9 botones
         botonesTopos = new JButton[9];
 
+        // crea los 9 botones
         for (int i = 0; i < 9; i++) {
             JButton topo = new JButton();
             topo.setBackground(new Color(173, 216, 230));

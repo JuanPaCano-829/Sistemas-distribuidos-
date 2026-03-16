@@ -13,7 +13,6 @@ public class Main {
             GameWindow ventana = new GameWindow();
             ventana.setVisible(true);
 
-            // ¡Borramos la línea de agregarNotificacion que estaba aquí!
         });
     }
 }
