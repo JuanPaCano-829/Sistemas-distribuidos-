@@ -1,95 +1,56 @@
 package Model;
 
-// ==========================================
-// CLASE PLAYER
-// Esta clase representa a un jugador dentro del juego
-// Aquí guardamos toda la información de cada jugador
-// ==========================================
 public class Player {
 
-    // ==========================================
-    // ATRIBUTOS DEL JUGADOR
-    // ==========================================
-
-    private String nombre;     // nombre del jugador
-    private int score;         // puntos que ha ganado en la partida
-    private boolean conectado; // indica si el jugador está conectado actualmente
-
-
-    // ==========================================
-    // CONSTRUCTOR
-    // ==========================================
-    // Este método se ejecuta cuando se crea un jugador nuevo.
-    // Inicializa el nombre y comienza con score = 0
+    private String nombre; // nombre del jugador
+    private int score; // puntos acumulados en la partida
+    private boolean conectado; // indica si el jugador sigue conectado
 
     public Player(String nombre) {
-
-        this.nombre = nombre;   // guarda el nombre del jugador
-        this.score = 0;         // el score inicia en 0
-        this.conectado = true;  // cuando se crea asumimos que está conectado
+        this.nombre = nombre; // guarda el nombre del jugador
+        this.score = 0; // score inicial
+        this.conectado = true; // al crearse se asume conectado
     }
 
-
-    // ==========================================
-    // MÉTODOS GET (OBTENER INFORMACIÓN)
-    // ==========================================
-
-    // Regresa el nombre del jugador
+    // =========================
+    // MÉTODOS GET
+    // =========================
     public String getNombre() {
-        return nombre;
+        return nombre; // regresa el nombre
     }
 
-    // Regresa el score actual del jugador
     public int getScore() {
-        return score;
+        return score; // regresa el score actual
     }
 
-    // Regresa si el jugador está conectado o no
     public boolean estaConectado() {
-        return conectado;
+        return conectado; // indica si el jugador sigue conectado
     }
 
-
-    // ==========================================
-    // MÉTODOS SET (MODIFICAR INFORMACIÓN)
-    // ==========================================
-
-    // Cambia el estado de conexión del jugador
+    // =========================
+    // MÉTODOS SET
+    // =========================
     public void setConectado(boolean estado) {
-        conectado = estado;
+        conectado = estado; // cambia el estado de conexión
     }
 
 
-    // ==========================================
-    // MÉTODOS DE LÓGICA DEL JUEGO
-    // ==========================================
-
-    // Suma un punto al score del jugador
+    // =========================
+    // LÓGICA DEL JUEGO
+    // =========================
     public void sumarPunto() {
-
         score++; // incrementa el score en 1
     }
 
-
-    // Reinicia el score del jugador
-    // Esto se usa cuando termina una partida
     public void reiniciarScore() {
-
-        score = 0;
+        score = 0; // reinicia el score del jugador
     }
 
-
-    // ==========================================
-    // MÉTODO PARA MOSTRAR INFORMACIÓN
-    // ==========================================
-    // Este método regresa un texto con la información
-    // del jugador, útil para imprimir en consola
-
+    // =========================
+    // INFORMACIÓN DEL OBJETO
+    // =========================
     @Override
     public String toString() {
-
-        return "Jugador: " + nombre +
-                " | Score: " + score +
-                " | Conectado: " + conectado;
+        return "Jugador: " + nombre + " | Score: " + score + " | Conectado: " + conectado;
     }
 }
