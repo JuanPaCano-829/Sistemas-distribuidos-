@@ -1,7 +1,11 @@
 package Server;
 
+<<<<<<< HEAD
 import Model.GameState;
 import Model.Player;
+=======
+import Model.GameState; // importar de la clase GameState
+>>>>>>> 520fbdab6b513d72dedfebe94605c49b3b937dbf
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -9,10 +13,52 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+<<<<<<< HEAD
 public class MonsterHitServerTCP {
     private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde escucha el servidor
     private static GameState estadoActualDelJuego; // estado global compartido
     private static MonsterPublisherActiveMQ publicadorDeEventos; // publisher de ActiveMQ
+=======
+// ==========================================
+// CLASE MONSTERHITSERVERTCP
+// Esta clase representa el servidor TCP del juego.
+//
+// Su trabajo es:
+// - abrir un puerto
+// - esperar conexiones de clientes
+// - aceptar mensajes TCP
+// - crear un hilo por cada cliente
+// Solamente recibe acciones de los jugadores y actualiza
+// el estado del juego usando GameState
+// ==========================================
+
+// clase principal para iniciar el servidor, abrir el puerto, esperar clientes y crear el ConnectionHandler
+public class MonsterHitServerTCP {
+    // ==========================================
+    // CONSTANTES DEL SERVIDOR
+    // ==========================================
+
+    private static final int PUERTO_SERVIDOR_TCP = 49152; // puerto donde el servidor escuchará conexiones
+
+    // ==========================================
+    // ATRIBUTOS COMPARTIDOS DEL SERVIDOR
+    // ==========================================
+
+    private static GameState estadoActualDelJuego;                 // estado global de la partida
+    private static MonsterPublisherActiveMQ publicadorDeEventos;   // clase que publica eventos al tópico
+
+    // ==========================================
+    // MÉTODO MAIN
+    // ==========================================
+    // Aquí inicia el servidor.
+    //
+    // El servidor:
+    // 1. crea el estado del juego
+    // 2. crea el publicador de eventos
+    // 3. abre el puerto TCP
+    // 4. espera clientes en un ciclo infinito
+    // 5. crea un ConnectionHandler por cada cliente
+>>>>>>> 520fbdab6b513d72dedfebe94605c49b3b937dbf
 
     public static void main(String[] args) {
         try {
@@ -64,11 +110,23 @@ class ConnectionHandler extends Thread {
     @Override
     public void run() {
         try {
+<<<<<<< HEAD
             String mensajeRecibido = flujoDeEntrada.readUTF(); // lee el mensaje enviado por el cliente
             System.out.println("Mensaje recibido: " + mensajeRecibido);
 
             String respuestaParaElCliente = procesarMensajeDelCliente(mensajeRecibido); // procesa el mensaje
             flujoDeSalida.writeUTF(respuestaParaElCliente); // responde al cliente
+=======
+            // lee el mensaje enviado por el cliente
+            String mensajeRecibido = flujoDeEntrada.readUTF(); // readUTF() leer los strings
+            System.out.println("Mensaje recibido: " + mensajeRecibido);
+
+            // procesa el mensaje y construye una respuesta
+            String respuestaParaElCliente = procesarMensajeDelCliente(mensajeRecibido);
+
+            // manda la respuesta al cliente
+            flujoDeSalida.writeUTF(respuestaParaElCliente); // writeUTF para responderle al cliente con strings
+>>>>>>> 520fbdab6b513d72dedfebe94605c49b3b937dbf
             flujoDeSalida.flush();
 
         } catch (IOException e) {
