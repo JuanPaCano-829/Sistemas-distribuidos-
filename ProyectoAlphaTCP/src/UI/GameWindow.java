@@ -5,9 +5,20 @@ import java.awt.*;
 
 public class GameWindow extends JFrame {
 
-    // El administrador de las "páginas"
+    // Administrador de vistas
     private CardLayout cardLayout;
     private JPanel panelPrincipal;
+
+    // Componentes que necesitamos controlar desde fuera
+    private JButton[] botonesTopos;
+    private JLabel lblScore;
+    private JTextArea areaJugadores;
+    private JTextField txtNombre;
+    private JSpinner spinVelocidad;
+    private JTextField txtCodigo;
+
+    // Para recordar qué topo está visible
+    private int topoVisible = -1;
 
     public GameWindow() {
         setTitle("Pegarle al Topo - Alpha");
@@ -15,20 +26,16 @@ public class GameWindow extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Inicializamos el CardLayout
         cardLayout = new CardLayout();
         panelPrincipal = new JPanel(cardLayout);
 
-        // Creamos las diferentes "páginas" de nuestro juego
         panelPrincipal.add(crearPanelMenu(), "MENU");
         panelPrincipal.add(crearPanelSolitario(), "SOLITARIO");
         panelPrincipal.add(crearPanelLobby(), "LOBBY");
         panelPrincipal.add(crearPanelUnirse(), "UNIRSE");
 
-        // Agregamos el panel principal a la ventana
         add(panelPrincipal);
 
-        // Le decimos que la primera página que debe mostrar es el MENU
         cardLayout.show(panelPrincipal, "MENU");
     }
 
@@ -46,7 +53,6 @@ public class GameWindow extends JFrame {
         JButton btnHost = new JButton("2. Multijugador (Crear Sala)");
         JButton btnUnirse = new JButton("3. Unirse a Partida");
 
-        // Navegación de los botones
         btnJugar.addActionListener(e -> cardLayout.show(panelPrincipal, "SOLITARIO"));
         btnHost.addActionListener(e -> cardLayout.show(panelPrincipal, "LOBBY"));
         btnUnirse.addActionListener(e -> cardLayout.show(panelPrincipal, "UNIRSE"));
@@ -65,36 +71,61 @@ public class GameWindow extends JFrame {
     private JPanel crearPanelSolitario() {
         JPanel panel = new JPanel(new BorderLayout());
 
-        // Cabecera: Nombre, Velocidad, Score y Botón Iniciar
         JPanel panelControles = new JPanel(new GridLayout(2, 4, 5, 5));
         panelControles.setBorder(BorderFactory.createTitledBorder("Configuración"));
 
         panelControles.add(new JLabel("Nombre:"));
-        JTextField txtNombre = new JTextField("Jugador1");
+        txtNombre = new JTextField("Jugador1");
         panelControles.add(txtNombre);
 
         panelControles.add(new JLabel("Velocidad (1-10):"));
-        JSpinner spinVelocidad = new JSpinner(new SpinnerNumberModel(5, 1, 10, 1));
+        spinVelocidad = new JSpinner(new SpinnerNumberModel(5, 1, 10, 1));
         panelControles.add(spinVelocidad);
 
         panelControles.add(new JLabel("Score:"));
-        JLabel lblScore = new JLabel("0", SwingConstants.CENTER);
+        lblScore = new JLabel("0", SwingConstants.CENTER);
         lblScore.setFont(new Font("Arial", Font.BOLD, 16));
         panelControles.add(lblScore);
 
         JButton btnIniciar = new JButton("¡Iniciar Partida!");
+        btnIniciar.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Partida iniciada para: " + obtenerNombreJugador());
+            actualizarScore(0);
+            ocultarTopos();
+        });
         panelControles.add(btnIniciar);
 
         JButton btnVolver = new JButton("Volver al Menú");
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "MENU"));
         panelControles.add(btnVolver);
 
-        // Centro: Matriz de Topos 3x3
         JPanel panelTopos = new JPanel(new GridLayout(3, 3, 10, 10));
         panelTopos.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
+        botonesTopos = new JButton[9];
+
         for (int i = 0; i < 9; i++) {
             JButton topo = new JButton();
             topo.setBackground(new Color(173, 216, 230));
+            topo.setFocusPainted(false);
+
+            final int indice = i;
+            topo.addActionListener(e -> {
+                System.out.println("Se hizo clic en la casilla: " + indice);
+
+                if (indice == topoVisible) {
+                    System.out.println("¡Le pegaste al topo!");
+                    actualizarScore(Integer.parseInt(lblScore.getText()) + 1);
+                    ocultarTopos();
+
+                    // Aquí después puedes conectar tu cliente TCP:
+                    // Client.enviarMensaje(ipDestino, puertoDestino, "HIT|" + indice);
+                } else {
+                    System.out.println("Casilla incorrecta.");
+                }
+            });
+
+            botonesTopos[i] = topo;
             panelTopos.add(topo);
         }
 
@@ -105,7 +136,7 @@ public class GameWindow extends JFrame {
     }
 
     // ==========================================
-    // PÁGINA 3: LOBBY (SALA DE ESPERA)
+    // PÁGINA 3: LOBBY
     // ==========================================
     private JPanel crearPanelLobby() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -115,13 +146,18 @@ public class GameWindow extends JFrame {
         titulo.setFont(new Font("Arial", Font.BOLD, 18));
         panel.add(titulo, BorderLayout.NORTH);
 
-        JTextArea areaJugadores = new JTextArea("Jugadores conectados:\n1. Tú (Anfitrión)\n...\nEsperando a otros...");
+        areaJugadores = new JTextArea("Jugadores conectados:\n1. Tú (Anfitrión)\n...\nEsperando a otros...");
         areaJugadores.setEditable(false);
         panel.add(new JScrollPane(areaJugadores), BorderLayout.CENTER);
 
         JPanel panelBotones = new JPanel(new FlowLayout());
         JButton btnIniciar = new JButton("Iniciar Partida Multijugador");
         JButton btnVolver = new JButton("Cancelar y Volver");
+
+        btnIniciar.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Aquí después arrancas la partida multijugador.");
+            mostrarPantalla("SOLITARIO");
+        });
 
         btnVolver.addActionListener(e -> cardLayout.show(panelPrincipal, "MENU"));
 
@@ -140,13 +176,13 @@ public class GameWindow extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(100, 100, 100, 100));
 
         panel.add(new JLabel("Ingresa la IP del Anfitrión:", SwingConstants.CENTER));
-        JTextField txtCodigo = new JTextField("localhost");
+
+        txtCodigo = new JTextField("localhost");
         panel.add(txtCodigo);
 
         JButton btnConectar = new JButton("Conectar a la Sala");
         JButton btnVolver = new JButton("Volver al Menú");
 
-        // Al conectar, te manda a la sala de espera (LOBBY)
         btnConectar.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Conectando a " + txtCodigo.getText() + "...");
             cardLayout.show(panelPrincipal, "LOBBY");
@@ -158,5 +194,57 @@ public class GameWindow extends JFrame {
         panel.add(btnVolver);
 
         return panel;
+    }
+
+    // ==========================================
+    // MÉTODOS PÚBLICOS PARA CONTROLAR LA UI
+    // ==========================================
+
+    public void mostrarPantalla(String nombrePantalla) {
+        cardLayout.show(panelPrincipal, nombrePantalla);
+    }
+
+    public void actualizarScore(int score) {
+        lblScore.setText(String.valueOf(score));
+    }
+
+    public void actualizarJugadores(String texto) {
+        areaJugadores.setText(texto);
+    }
+
+    public String obtenerNombreJugador() {
+        return txtNombre.getText();
+    }
+
+    public int obtenerVelocidad() {
+        return (int) spinVelocidad.getValue();
+    }
+
+    public String obtenerIPHost() {
+        return txtCodigo.getText();
+    }
+
+    public void mostrarTopo(int indice) {
+        ocultarTopos();
+
+        if (indice >= 0 && indice < botonesTopos.length) {
+            botonesTopos[indice].setText("🟢");
+            botonesTopos[indice].setBackground(Color.GREEN);
+            topoVisible = indice;
+        }
+    }
+
+    public void ocultarTopos() {
+        if (botonesTopos == null) return;
+
+        for (JButton boton : botonesTopos) {
+            boton.setText("");
+            boton.setBackground(new Color(173, 216, 230));
+        }
+        topoVisible = -1;
+    }
+
+    public int getTopoVisible() {
+        return topoVisible;
     }
 }
