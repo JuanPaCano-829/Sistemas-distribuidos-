@@ -1,5 +1,5 @@
 package Server;
-
+// Código para la clase MonsterHitServerTCP
 import Model.GameState;
 import Model.Player;
 

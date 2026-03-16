@@ -1,5 +1,5 @@
 package Server;
-
+// Codigo para la clase MonsterPublicherActiveMQ
 import Model.GameState;
 import Model.Player;
 import jakarta.jms.*;

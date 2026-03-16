@@ -1,5 +1,5 @@
 package Model;
-
+// Código para la clase Monster
 import java.util.Random;
 
 public class Monster {

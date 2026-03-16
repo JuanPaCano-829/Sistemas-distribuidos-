@@ -1,5 +1,5 @@
 package UI;
-
+// Código para la clase GamePanel
 import javax.swing.*;
 import java.awt.*;
 
@@ -39,7 +39,7 @@ public class GamePanel extends JPanel {
 
         botones = new JButton[9];
 
-        for(int i=0;i<9;i++){
+        for(int i = 0; i < 9; i++){
 
             JButton b = new JButton();
             b.setBackground(Color.LIGHT_GRAY);
@@ -47,11 +47,7 @@ public class GamePanel extends JPanel {
             int indice = i;
 
             b.addActionListener(e -> {
-
-                if(indice == topoVisible){
-                    sumarScore();
-                    ocultarTopos();
-                }
+                window.procesarClickEnCasilla(indice); // solo le avisamos a la ventana qué casilla se presionó
             });
 
             botones[i] = b;
@@ -66,8 +62,7 @@ public class GamePanel extends JPanel {
 
         ocultarTopos();
 
-        if(indice >=0 && indice < botones.length){
-
+        if(indice >= 0 && indice < botones.length){
             botones[indice].setIcon(topoGif);
             topoVisible = indice;
         }
@@ -82,13 +77,11 @@ public class GamePanel extends JPanel {
         topoVisible = -1;
     }
 
-    private void sumarScore(){
+    public int getTopoVisible(){
+        return topoVisible;
+    }
 
-        String texto = lblScore.getText().replace("Score: ","");
-        int score = Integer.parseInt(texto);
-
-        score++;
-
+    public void actualizarScore(int score){
         lblScore.setText("Score: " + score);
     }
 }

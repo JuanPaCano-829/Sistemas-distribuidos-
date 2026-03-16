@@ -1,5 +1,5 @@
 package Client;
-
+// Código para la clase MonsterSubscriberActiveMQ
 import jakarta.jms.*;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;

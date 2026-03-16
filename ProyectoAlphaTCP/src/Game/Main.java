@@ -1,5 +1,5 @@
 package Game;
-
+// Código para la clase Main
 import UI.GameWindow;
 import javax.swing.SwingUtilities;
 

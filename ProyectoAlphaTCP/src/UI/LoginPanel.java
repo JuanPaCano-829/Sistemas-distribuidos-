@@ -1,5 +1,5 @@
 package UI;
-
+// Código para la clase LoginPanel
 import javax.swing.*;
 import java.awt.*;
 

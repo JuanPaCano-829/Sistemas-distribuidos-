@@ -1,5 +1,5 @@
 package Model;
-
+// Código para la clase Player
 public class Player {
 
     private String nombre; // nombre del jugador

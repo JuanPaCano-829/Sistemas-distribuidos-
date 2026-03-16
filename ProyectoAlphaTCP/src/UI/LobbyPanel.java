@@ -1,5 +1,5 @@
 package UI;
-
+// Código para la clase LobbyPanel
 import javax.swing.*;
 import java.awt.*;
 
