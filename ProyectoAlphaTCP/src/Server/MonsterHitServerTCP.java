@@ -1,6 +1,6 @@
 package Server;
 
-import Model.GameState;
+import Model.GameState; // importar de la clase GameState
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -21,8 +21,8 @@ import java.net.Socket;
 // el estado del juego usando GameState
 // ==========================================
 
+// clase principal para iniciar el servidor, abrir el puerto, esperar clientes y crear el ConnectionHandler
 public class MonsterHitServerTCP {
-
     // ==========================================
     // CONSTANTES DEL SERVIDOR
     // ==========================================
@@ -149,14 +149,14 @@ class ConnectionHandler extends Thread {
 
         try {
             // lee el mensaje enviado por el cliente
-            String mensajeRecibido = flujoDeEntrada.readUTF();
+            String mensajeRecibido = flujoDeEntrada.readUTF(); // readUTF() leer los strings
             System.out.println("Mensaje recibido: " + mensajeRecibido);
 
             // procesa el mensaje y construye una respuesta
             String respuestaParaElCliente = procesarMensajeDelCliente(mensajeRecibido);
 
             // manda la respuesta al cliente
-            flujoDeSalida.writeUTF(respuestaParaElCliente);
+            flujoDeSalida.writeUTF(respuestaParaElCliente); // writeUTF para responderle al cliente con strings
             flujoDeSalida.flush();
 
         } catch (IOException e) {
