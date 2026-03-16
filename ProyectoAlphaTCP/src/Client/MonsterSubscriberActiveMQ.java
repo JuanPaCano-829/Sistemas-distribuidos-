@@ -39,8 +39,7 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
     @Override
     public void onMessage(Message message) {
         try {
-            if (message instanceof TextMessage) {
-                TextMessage textMessage = (TextMessage) message;
+            if (message instanceof TextMessage textMessage) {
                 String text = textMessage.getText();
 
                 if (text.startsWith("WINNER:") || text.equals("GAME_START")) {
