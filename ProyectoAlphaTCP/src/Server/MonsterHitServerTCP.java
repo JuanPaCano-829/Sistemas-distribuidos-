@@ -88,22 +88,17 @@ class ConnectionHandler extends Thread {
         String[] parts = request.split("\\|"); // separa el mensaje por el símbolo |
         String command = getCommand(parts); // obtiene el comando principal
 
-        switch (command) {
-            case "LOGIN":
-                return processLogin(parts); // procesa el login
+        return switch (command) {
+            case "LOGIN" -> processLogin(parts); // procesa el login
 
-            case "HIT":
-                return processHit(parts); // procesa el golpe
+            case "HIT" -> processHit(parts); // procesa el golpe
 
-            case "START_GAME":
-                return processStartGame(parts); // procesa el inicio manual de la partida
+            case "START_GAME" -> processStartGame(parts); // procesa el inicio manual de la partida
 
-            case "DISCONNECT":
-                return processDisconnect(parts); // procesa la desconexión
+            case "DISCONNECT" -> processDisconnect(parts); // procesa la desconexión
 
-            default:
-                return "ERROR|Unknown command"; // responde error si el comando no existe
-        }
+            default -> "ERROR|Unknown command"; // responde error si el comando no existe
+        };
     }
 
     private String getCommand(String[] parts) {

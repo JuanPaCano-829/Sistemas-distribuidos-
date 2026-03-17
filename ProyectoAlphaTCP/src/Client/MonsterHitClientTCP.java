@@ -38,11 +38,15 @@ public class MonsterHitClientTCP {
         return sendMessage("START_GAME|" + playerName);
     }
 
-    public String sendDisconnect(String playerName) {
-        String response = sendMessage("DISCONNECT|" + playerName);
+
+    public void sendDisconnect(String playerName) {
+        if (playerName == null || playerName.isBlank()) return;
+
+        sendMessage("DISCONNECT|" + playerName);
         closeConnection();
-        return response;
     }
+
+
 
     private String sendMessage(String message) {
         try {

@@ -87,9 +87,7 @@ public class GameWindow extends JFrame {
     }
 
     public void processCellClick(int index) {
-        if (currentPlayerName == null || currentPlayerName.isBlank()) return; 
-
-        String response = tcpClient.sendHit(currentPlayerName, index); 
+        String response = tcpClient.sendHit(currentPlayerName, index);
 
         if (response.startsWith("HIT_OK|WINNER|")) {
             String[] parts = response.split("\\|"); 
@@ -120,7 +118,7 @@ public class GameWindow extends JFrame {
     }
 
     public void disconnectAndReturnToLogin() {
-        if (currentPlayerName != null && !currentPlayerName.isBlank()) tcpClient.sendDisconnect(currentPlayerName);
+        tcpClient.sendDisconnect(currentPlayerName);
 
         subscriber.stopListening();
         subscriberStarted = false;

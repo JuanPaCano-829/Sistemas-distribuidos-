@@ -23,8 +23,6 @@ public class GameState {
     }
 
     public synchronized Player addOrReconnectPlayer(String playerName) {
-        if (playerName == null || playerName.trim().isEmpty()) return null; // evita nombres vacíos
-
         String cleanName = playerName.trim(); // limpia espacios laterales
         Player player = players.get(cleanName); // busca al jugador por nombre
 
@@ -73,7 +71,7 @@ public class GameState {
         StringBuilder builder = new StringBuilder();
         for (Player player : players.values()) {
             if (player.isConnected()) {
-                if (builder.length() > 0) builder.append(",");
+                if (!builder.isEmpty()) builder.append(",");
                 builder.append(player.getName()).append(":").append(player.getScore());
             }
         }
