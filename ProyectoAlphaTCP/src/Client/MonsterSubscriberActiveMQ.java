@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
+//Vincula el suscriptor con la interfaz gráfica del juego.
 public class MonsterSubscriberActiveMQ implements MessageListener {
 
     private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL; // URL del broker
@@ -32,6 +33,7 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
         this.started = false; // al inicio todavía no escucha
     }
 
+    //Configura la conexión JMS y activa la recepción de mensajes.
     public void startListening(String monsterTopic, String systemTopic) {
         if (started) return;
         this.monsterTopic = monsterTopic;
@@ -60,7 +62,7 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
             System.err.println("JMS subscriber error: " + e.getMessage()); // muestra error de JMS
         }
     }
-
+    //Cierra de forma segura todos los recursos de ActiveMQ.
     public void stopListening() {
         if (!started) return;
 
@@ -76,7 +78,7 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
             System.err.println("Error stopping JMS: " + e.getMessage());
         }
     }
-
+    //Procesa mensajes entrantes y actualiza la interfaz de usuario.
     @Override
     public void onMessage(Message message) {
         try {

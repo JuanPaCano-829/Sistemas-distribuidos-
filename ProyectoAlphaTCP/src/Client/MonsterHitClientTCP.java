@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+//Configura los parámetros de red iniciales del cliente.
 public class MonsterHitClientTCP {
 
     private final String serverIp;
@@ -17,7 +18,7 @@ public class MonsterHitClientTCP {
         this.serverIp = serverIp;
         this.serverPort = serverPort;
     }
-
+    //Asegura conexión activa antes de realizar cualquier envío.
     private void connectIfNeeded() throws IOException {
         if (socket == null || socket.isClosed()) {
             socket = new Socket(serverIp, serverPort);
@@ -26,19 +27,22 @@ public class MonsterHitClientTCP {
         }
     }
 
+    //Envía el nombre del jugador para autenticarse.
     public String sendLogin(String playerName) {
         return sendMessage("LOGIN|" + playerName);
     }
 
+    //Transmite la posición de un ataque al servidor.
     public String sendHit(String playerName, int position) {
         return sendMessage("HIT|" + playerName + "|" + position);
     }
 
+    //Solicita al servidor el inicio de la partida.
     public String sendStartGame(String playerName) {
         return sendMessage("START_GAME|" + playerName);
     }
 
-
+    //Avisa la desconexión y cierra todos los recursos.
     public void sendDisconnect(String playerName) {
         if (playerName == null || playerName.isBlank()) return;
 
@@ -47,7 +51,7 @@ public class MonsterHitClientTCP {
     }
 
 
-
+    // Gestiona el intercambio de mensajes y captura errores.
     private String sendMessage(String message) {
         try {
             connectIfNeeded();
@@ -66,6 +70,7 @@ public class MonsterHitClientTCP {
         }
     }
 
+    //Finaliza flujos de datos y cierra el socket.
     private void closeConnection() {
         try {
             if (input != null) input.close();
