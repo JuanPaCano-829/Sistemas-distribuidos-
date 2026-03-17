@@ -53,29 +53,32 @@ public class GameWindow extends JFrame {
         cardLayout.show(container, screenName); 
     }
 
+    // En ProyectoAlphaTCP/src/UI/GameWindow.java
     public void login(String playerName) {
-        String response = tcpClient.sendLogin(playerName); 
+        String response = tcpClient.sendLogin(playerName);
 
         if (response.startsWith("LOGIN_OK|")) {
-            String[] parts = response.split("\\|"); 
-            currentPlayerName = parts[1]; 
+            String[] parts = response.split("\\|");
+            currentPlayerName = parts[1];
 
-            int score = 0; 
-            if (parts.length >= 3) score = Integer.parseInt(parts[2]); 
+            // Extraer configuración del Handshake
+            int score = Integer.parseInt(parts[2]);
+            String monsterTopic = parts[3];
+            String systemTopic = parts[4];
+            // El puerto (parts[5]) ya lo conoce el tcpClient pues lo usó para conectar
 
             if (!subscriberStarted) {
-                subscriber.startListening(); 
-                subscriberStarted = true; 
+                subscriber.startListening(monsterTopic, systemTopic); // Pasa los topics dinámicos
+                subscriberStarted = true;
             }
 
-             
-            lobbyPanel.updatePlayers("Waiting for player list..."); 
-            lobbyPanel.setStartButtonEnabled(true); 
-            showScreen("LOBBY"); 
-            return; 
+            lobbyPanel.updatePlayers("Waiting for player list...");
+            lobbyPanel.setStartButtonEnabled(true);
+            showScreen("LOBBY");
+            return;
         }
 
-        showError(response); 
+        showError(response);
     }
 
     public void requestGameStart() {

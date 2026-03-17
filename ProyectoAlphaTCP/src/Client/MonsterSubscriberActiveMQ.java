@@ -17,8 +17,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class MonsterSubscriberActiveMQ implements MessageListener {
 
     private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL; // URL del broker
-    private static final String MONSTER_TOPIC = "MONSTER_UPDATES"; // topic de posiciones del monstruo
-    private static final String SYSTEM_TOPIC = "GAME_SYSTEM"; // topic de eventos del sistema
+    private String monsterTopic;
+    private String systemTopic;
 
     private final GameWindow window; // referencia a la ventana principal
     private Connection connection; // conexión JMS
@@ -32,18 +32,20 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
         this.started = false; // al inicio todavía no escucha
     }
 
-    public void startListening() {
-        if (started) return; // evita crear listeners duplicados
+    public void startListening(String monsterTopic, String systemTopic) {
+        if (started) return;
+        this.monsterTopic = monsterTopic;
+        this.systemTopic = systemTopic;
 
-        ConnectionFactory factory = new ActiveMQConnectionFactory(URL); // crea la fábrica JMS
-
+        ConnectionFactory factory = new ActiveMQConnectionFactory(URL);
         try {
-            connection = factory.createConnection(); // crea la conexión
-            connection.start(); // activa la conexión
+            connection = factory.createConnection();
+            connection.start();
 
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE); // crea una sesión simple
-            Destination monsterDestination = session.createTopic(MONSTER_TOPIC); // obtiene el topic de monstruos
-            Destination systemDestination = session.createTopic(SYSTEM_TOPIC); // obtiene el topic del sistema
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            // Usa las variables en lugar de constantes:
+            Destination monsterDestination = session.createTopic(this.monsterTopic);
+            Destination systemDestination = session.createTopic(this.systemTopic);
 
             monsterConsumer = session.createConsumer(monsterDestination); // crea consumidor del topic de monstruos
             systemConsumer = session.createConsumer(systemDestination); // crea consumidor del topic del sistema
