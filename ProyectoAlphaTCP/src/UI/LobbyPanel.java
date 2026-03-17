@@ -25,7 +25,7 @@ public class LobbyPanel extends JPanel {
         playersArea.setEditable(false); // evita que el usuario escriba en la lista
 
         startButton = new JButton("Start Game"); // crea el botón real para iniciar la partida
-        startButton.addActionListener(e -> window.startGameFromLobby()); // delega el clic a la ventana principal
+        startButton.addActionListener(e -> window.requestGameStart()); // delega el clic a la ventana principal
 
         add(title, BorderLayout.NORTH); // agrega el título arriba
         add(new JScrollPane(playersArea), BorderLayout.CENTER); // agrega la lista al centro

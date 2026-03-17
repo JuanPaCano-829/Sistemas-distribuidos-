@@ -59,6 +59,22 @@ public class MonsterSubscriberActiveMQ implements MessageListener {
         }
     }
 
+    public void stopListening() {
+        if (!started) return;
+
+        try {
+            if (monsterConsumer != null) monsterConsumer.close();
+            if (systemConsumer != null) systemConsumer.close();
+            if (session != null) session.close();
+            if (connection != null) connection.close();
+
+            started = false;
+            System.out.println("JMS subscriber stopped.");
+        } catch (JMSException e) {
+            System.err.println("Error stopping JMS: " + e.getMessage());
+        }
+    }
+
     @Override
     public void onMessage(Message message) {
         try {

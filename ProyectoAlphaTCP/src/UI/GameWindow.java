@@ -9,162 +9,149 @@ import java.awt.CardLayout;
 
 public class GameWindow extends JFrame {
 
-    private static final String SERVER_IP = "localhost"; // IP del servidor TCP
-    private static final int SERVER_PORT = 49152; // puerto del servidor TCP
+    private static final String SERVER_IP = "localhost"; 
+    private static final int SERVER_PORT = 49152; 
 
-    private final CardLayout cardLayout; // layout para cambiar entre pantallas
-    private final JPanel container; // contenedor principal de pantallas
-    private final LoginPanel loginPanel; // pantalla de login
-    private final LobbyPanel lobbyPanel; // pantalla de lobby
-    private final GamePanel gamePanel; // pantalla del juego
-    private final MonsterHitClientTCP tcpClient; // cliente TCP para enviar comandos
-    private final MonsterSubscriberActiveMQ subscriber; // subscriber JMS para escuchar eventos
-    private boolean subscriberStarted; // evita iniciar el subscriber más de una vez
-    private String currentPlayerName; // guarda el nombre del jugador actual
+    private final CardLayout cardLayout; 
+    private final JPanel container; 
+    private final LoginPanel loginPanel; 
+    private final LobbyPanel lobbyPanel; 
+    private final GamePanel gamePanel; 
+    private final MonsterHitClientTCP tcpClient; 
+    private final MonsterSubscriberActiveMQ subscriber; 
+    private boolean subscriberStarted; 
+    private String currentPlayerName;
 
     public GameWindow() {
-        setTitle("Whack-a-Mole Multiplayer"); // título de la ventana
-        setSize(500, 600); // tamaño inicial de la ventana
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // define cierre del programa
-        setLocationRelativeTo(null); // centra la ventana en pantalla
+        setTitle("AlphaTCP Golpea al topo"); 
+        setSize(500, 600); 
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        setLocationRelativeTo(null); 
 
-        currentPlayerName = ""; // al inicio no hay jugador activo
-        subscriberStarted = false; // al inicio el subscriber no está escuchando
+        currentPlayerName = ""; 
+        subscriberStarted = false; 
 
-        cardLayout = new CardLayout(); // crea el CardLayout
-        container = new JPanel(cardLayout); // crea el contenedor con CardLayout
+        cardLayout = new CardLayout(); 
+        container = new JPanel(cardLayout); 
 
-        tcpClient = new MonsterHitClientTCP(SERVER_IP, SERVER_PORT); // crea el cliente TCP
-        subscriber = new MonsterSubscriberActiveMQ(this); // crea el subscriber JMS
+        tcpClient = new MonsterHitClientTCP(SERVER_IP, SERVER_PORT); 
+        subscriber = new MonsterSubscriberActiveMQ(this); 
 
-        loginPanel = new LoginPanel(this); // crea el panel de login
-        lobbyPanel = new LobbyPanel(this); // crea el panel de lobby
-        gamePanel = new GamePanel(this); // crea el panel de juego
+        loginPanel = new LoginPanel(this); 
+        lobbyPanel = new LobbyPanel(this); 
+        gamePanel = new GamePanel(this); 
 
-        container.add(loginPanel, "LOGIN"); // registra la pantalla de login
-        container.add(lobbyPanel, "LOBBY"); // registra la pantalla de lobby
-        container.add(gamePanel, "GAME"); // registra la pantalla del juego
+        container.add(loginPanel, "LOGIN"); 
+        container.add(lobbyPanel, "LOBBY"); 
+        container.add(gamePanel, "GAME"); 
 
-        add(container); // agrega el contenedor a la ventana
-        showScreen("LOGIN"); // muestra la pantalla inicial
+        add(container); 
+        showScreen("LOGIN"); 
     }
 
     public void showScreen(String screenName) {
-        cardLayout.show(container, screenName); // cambia a la pantalla indicada
+        cardLayout.show(container, screenName); 
     }
 
     public void login(String playerName) {
-        String response = tcpClient.sendLogin(playerName); // manda el login al servidor
+        String response = tcpClient.sendLogin(playerName); 
 
         if (response.startsWith("LOGIN_OK|")) {
-            String[] parts = response.split("\\|"); // separa la respuesta del servidor
-            currentPlayerName = parts[1]; // guarda el nombre confirmado por el servidor
+            String[] parts = response.split("\\|"); 
+            currentPlayerName = parts[1]; 
 
-            int score = 0; // score por defecto
-            if (parts.length >= 3) score = Integer.parseInt(parts[2]); // extrae el score si viene incluido
+            int score = 0; 
+            if (parts.length >= 3) score = Integer.parseInt(parts[2]); 
 
             if (!subscriberStarted) {
-                subscriber.startListening(); // inicia la escucha de eventos JMS
-                subscriberStarted = true; // marca que ya fue iniciado
+                subscriber.startListening(); 
+                subscriberStarted = true; 
             }
 
-             // actualiza el score visual
-            lobbyPanel.updatePlayers("Waiting for player list..."); // deja un mensaje temporal en el lobby
-            lobbyPanel.setStartButtonEnabled(true); // habilita el botón para iniciar la partida
-            showScreen("LOBBY"); // cambia a la pantalla del lobby
-            return; // termina si el login fue exitoso
+             
+            lobbyPanel.updatePlayers("Waiting for player list..."); 
+            lobbyPanel.setStartButtonEnabled(true); 
+            showScreen("LOBBY"); 
+            return; 
         }
 
-        showError(response); // muestra error si el login falló
+        showError(response); 
     }
 
-    public void startGameFromLobby() {
-        if (currentPlayerName == null || currentPlayerName.isBlank()) return; // evita iniciar si no hay sesión activa
-
-        String response = tcpClient.sendStartGame(currentPlayerName); // manda la petición para iniciar la partida
-
-        if (response.startsWith("START_OK|")) {
-            lobbyPanel.setStartButtonEnabled(false); // deshabilita el botón para evitar varios clics
-            return; // espera a que el cambio real llegue por JMS con GAME_START
-        }
-
-        if (response.equals("GAME_ALREADY_STARTED")) {
-            lobbyPanel.setStartButtonEnabled(false); // si ya inició, solo deshabilita el botón
-            return; // evita mostrar error en este caso
-        }
+    public void requestGameStart() {
+        String response = tcpClient.sendStartGame(currentPlayerName);
 
         if (response.startsWith("ERROR|")) {
-            showError(response); // muestra error si algo falló al iniciar la partida
+            showError(response);
         }
     }
 
     public void processCellClick(int index) {
-        if (currentPlayerName == null || currentPlayerName.isBlank()) return; // evita enviar golpes si no hay sesión activa
+        if (currentPlayerName == null || currentPlayerName.isBlank()) return; 
 
-        String response = tcpClient.sendHit(currentPlayerName, index); // manda el golpe al servidor
+        String response = tcpClient.sendHit(currentPlayerName, index); 
 
         if (response.startsWith("HIT_OK|WINNER|")) {
-            String[] parts = response.split("\\|"); // separa la respuesta del servidor
+            String[] parts = response.split("\\|"); 
             if (parts.length >= 4) {
-                int score = Integer.parseInt(parts[3]); // obtiene el score actualizado
-                 // actualiza el score visual
+                int score = Integer.parseInt(parts[3]); 
+                 
             }
-            return; // no hace más porque el winner oficial llegará también por JMS
+            return; 
         }
 
         if (response.startsWith("HIT_OK|")) {
-            String[] parts = response.split("\\|"); // separa la respuesta del servidor
+            String[] parts = response.split("\\|"); 
             if (parts.length >= 3) {
-                int score = Integer.parseInt(parts[2]); // obtiene el score actualizado
-                 // actualiza el score visual
+                int score = Integer.parseInt(parts[2]); 
+                 
             }
-            return; // termina si fue golpe correcto
+            return; 
         }
 
         if (response.startsWith("MISS|")) {
-            System.out.println("Miss at position: " + index); // imprime golpe fallido en consola
-            return; // no hace más si el golpe falló
+            System.out.println("Miss at position: " + index); 
+            return; 
         }
 
         if (response.startsWith("ERROR|")) {
-            showError(response); // muestra error si hubo problema con la solicitud
+            showError(response); 
         }
     }
 
     public void disconnectAndReturnToLogin() {
-        if (currentPlayerName != null && !currentPlayerName.isBlank()) tcpClient.sendDisconnect(currentPlayerName); // avisa al servidor que el jugador sale
+        if (currentPlayerName != null && !currentPlayerName.isBlank()) tcpClient.sendDisconnect(currentPlayerName);
 
-        currentPlayerName = ""; // limpia el nombre del jugador actual
-        gamePanel.resetBoard(); // limpia el tablero y score
-        lobbyPanel.updatePlayers(""); // limpia la lista del lobby
-        lobbyPanel.setStartButtonEnabled(true); // deja listo el botón por si se vuelve a entrar
-        loginPanel.clearFields(); // limpia el campo del login
-        showScreen("LOGIN"); // vuelve a la pantalla de login
+        subscriber.stopListening();
+        subscriberStarted = false;
+
+        currentPlayerName = "";
+        gamePanel.resetBoard();
+        lobbyPanel.updatePlayers("");
+        lobbyPanel.setStartButtonEnabled(true);
+        loginPanel.clearFields();
+        showScreen("LOGIN");
     }
 
     public void handleMonsterPosition(int position) {
-        if (currentPlayerName == null || currentPlayerName.isBlank()) return; // ignora mensajes si no hay sesión activa
 
-        showScreen("GAME"); // asegura que el jugador vea la pantalla del juego
-        gamePanel.showMonster(position); // muestra el monstruo en la posición recibida
+        showScreen("GAME"); 
+        gamePanel.showMonster(position); 
     }
 
     public void handleSystemMessage(String message) {
-        if (currentPlayerName == null || currentPlayerName.isBlank()) return; // ignora mensajes si no hay sesión activa
 
         if (message.equals("GAME_START")) {
-            gamePanel.resetBoard(); // limpia tablero y score visual al iniciar nueva partida
-            lobbyPanel.setStartButtonEnabled(false); // deshabilita el botón porque la partida ya comenzó
-            showScreen("GAME"); // entra automáticamente al juego
-            return; // termina el manejo del mensaje
+            gamePanel.resetBoard();
+            showScreen("GAME"); 
+            return; 
         }
 
         if (message.startsWith("WINNER:")) {
-            String winnerName = message.substring("WINNER:".length()).trim(); // extrae el nombre del ganador
-            JOptionPane.showMessageDialog(this, "Winner: " + winnerName); // muestra el ganador en una ventana
-            lobbyPanel.setStartButtonEnabled(true); // vuelve a habilitar el botón para la siguiente partida
-            showScreen("LOBBY"); // regresa al lobby después de terminar la partida
-            return; // termina el manejo del mensaje
+            String winnerName = message.substring("WINNER:".length()).trim(); 
+            JOptionPane.showMessageDialog(this, "Winner: " + winnerName);
+            showScreen("LOBBY"); 
+            return; 
         }
 
         if (message.startsWith("PLAYERS:")) {
@@ -193,13 +180,13 @@ public class GameWindow extends JFrame {
     }
 
     private void showError(String response) {
-        String message = response; // toma la respuesta completa por defecto
+        String message = response; 
 
         if (response != null && response.startsWith("ERROR|")) {
-            String[] parts = response.split("\\|", 2); // divide el mensaje solo una vez
-            if (parts.length == 2) message = parts[1]; // toma solo la parte del texto de error
+            String[] parts = response.split("\\|", 2); 
+            if (parts.length == 2) message = parts[1]; 
         }
 
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE); // muestra el error en pantalla
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE); 
     }
 }

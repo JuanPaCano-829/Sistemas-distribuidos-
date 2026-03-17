@@ -109,21 +109,8 @@ public class GameState {
 
         monster.hide(); // oculta al monstruo
         roundActive = false; // deja la ronda inactiva
-        gameStarted = false; // regresa al lobby para que vuelvan a iniciar manualmente
         winner = null; // elimina el ganador actual
     }
 
-    @Override
-    public synchronized String toString() {
-        StringBuilder text = new StringBuilder("===== GAME STATE =====\n"); // crea encabezado de depuración
 
-        for (Player player : players.values()) text.append(player).append("\n"); // agrega cada jugador al texto
-
-        text.append(monster).append("\n"); // agrega el estado del monstruo
-        text.append("Round active: ").append(roundActive).append("\n"); // agrega estado de la ronda
-        text.append("Game started: ").append(gameStarted).append("\n"); // agrega estado de inicio de juego
-        text.append("Winner: ").append(winner).append("\n"); // agrega ganador actual
-
-        return text.toString(); // regresa el texto completo
-    }
 }

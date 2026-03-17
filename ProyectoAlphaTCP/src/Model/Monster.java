@@ -32,9 +32,4 @@ public class Monster {
         position = -1; // elimina la posición visible
         visible = false; // oculta el monstruo
     }
-
-    @Override
-    public String toString() {
-        return "Monster position: " + position + " | Visible: " + visible; // regresa texto descriptivo
-    }
 }
