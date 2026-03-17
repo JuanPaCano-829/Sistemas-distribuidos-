@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+//Inicializa componentes y variables de estado del juego.
 public class GameState {
 
     private static final int POINTS_TO_WIN = 5; // define los puntos necesarios para ganar
@@ -22,6 +23,7 @@ public class GameState {
         winner = null; // al inicio no hay ganador
     }
 
+    //Registra un nuevo jugador o marca su reconexión.
     public synchronized Player addOrReconnectPlayer(String playerName) {
         String cleanName = playerName.trim(); // limpia espacios laterales
         Player player = players.get(cleanName); // busca al jugador por nombre
@@ -36,24 +38,26 @@ public class GameState {
         return player; // regresa el jugador creado o reconectado
     }
 
+    //Busca y devuelve un objeto jugador mediante su nombre.
     public synchronized Player getPlayer(String playerName) {
         return players.get(playerName); // regresa el jugador buscado
     }
-
+    //Activa el inicio oficial de la partida.
     public synchronized void startGame() {
-        gameStarted = true; // marca que la partida ya fue iniciada desde el lobby
+        gameStarted = true;
     }
-
+    //Verifica si la partida se encuentra actualmente activa
     public synchronized boolean isGameStarted() {
         return gameStarted; // regresa si la partida ya fue iniciada
     }
 
+    //Genera posición del monstruo e inicia nueva ronda.
     public synchronized int startNewRound() {
         int position = monster.generateNewPosition(); // genera una nueva posición del monstruo
         roundActive = true; // activa la ronda actual
         return position; // regresa la nueva posición
     }
-
+    //Indica si un jugador ya ganó la partida.
     public synchronized boolean hasWinner() {
         return winner != null; // indica si ya hay ganador
     }
@@ -62,11 +66,13 @@ public class GameState {
         return winner; // regresa el nombre del ganador
     }
 
+    //Obtiene el puntaje actual de un jugador determinado.
     public synchronized int getPlayerScore(String playerName) {
         Player player = players.get(playerName); // busca al jugador por nombre
         return player == null ? 0 : player.getScore(); // devuelve su score o cero si no existe
     }
 
+    //Genera cadena con nombres y puntos de jugadores activos.
     public synchronized String getConnectedPlayersMessage() {
         StringBuilder builder = new StringBuilder();
         for (Player player : players.values()) {
@@ -78,6 +84,7 @@ public class GameState {
         return builder.toString();
     }
 
+    //Evalúa si un golpe es válido
     private boolean isValidHit(String playerName, int hitPosition) {
         Player player = players.get(playerName); // obtiene al jugador que golpeó
         if (player == null) return false; // invalida si no existe el jugador
@@ -88,6 +95,7 @@ public class GameState {
         return hitPosition == monster.getPosition(); // valida que la casilla coincida
     }
 
+    //Registra aciertos, actualiza puntajes y comprueba condiciones finales.
     public synchronized boolean processHit(String playerName, int hitPosition) {
         if (!isValidHit(playerName, hitPosition)) return false; // corta si el golpe es inválido
 
@@ -102,6 +110,7 @@ public class GameState {
         return true; // confirma que el golpe fue válido
     }
 
+    //Limpia puntajes y estados para iniciar otra partida.
     public synchronized void resetMatch() {
         for (Player player : players.values()) player.resetScore(); // reinicia el score de todos los jugadores
 
