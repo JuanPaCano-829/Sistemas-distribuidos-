@@ -10,7 +10,7 @@ import java.net.Socket;
 
 public class MonsterHitServerTCP {
 
-    private static final int SERVER_PORT = 49152; // puerto donde escuchará el servidor TCP
+    public static final int SERVER_PORT = 49152;
     private static GameState gameState; // estado global compartido
     private static MonsterPublisherActiveMQ publisher; // publicador de eventos por ActiveMQ
 
@@ -106,16 +106,22 @@ class ConnectionHandler extends Thread {
         return parts[0].trim().toUpperCase(); // normaliza el comando
     }
 
+    // En ProyectoAlphaTCP/src/Server/MonsterHitServerTCP.java -> ConnectionHandler
     private String processLogin(String[] parts) {
-        if (parts.length < 2) return "ERROR|Invalid LOGIN format"; // valida estructura mínima
+        if (parts.length < 2) return "ERROR|Invalid LOGIN format";
 
-        String playerName = parts[1].trim(); // obtiene el nombre del jugador
+        String playerName = parts[1].trim();
+        Player player = gameState.addOrReconnectPlayer(playerName);
+        if (player == null) return "ERROR|Could not register player";
 
-        Player player = gameState.addOrReconnectPlayer(playerName); // registra o reconecta al jugador
-        if (player == null) return "ERROR|Could not register player"; // valida que sí se haya creado o reconectado
         this.connectedPlayerName = player.getName();
-        System.out.println("Player logged in: " + playerName); // imprime el login exitoso
-        return "LOGIN_OK|" + player.getName() + "|" + player.getScore(); // responde login correcto y score actual
+        System.out.println("Player logged in: " + playerName);
+
+        // Formato: LOGIN_OK|nombre|score|monsterTopic|systemTopic|hitPort
+        return "LOGIN_OK|" + player.getName() + "|" + player.getScore() + "|" +
+                MonsterPublisherActiveMQ.MONSTER_TOPIC + "|" +
+                MonsterPublisherActiveMQ.SYSTEM_TOPIC + "|" +
+                MonsterHitServerTCP.SERVER_PORT;
     }
 
     private String processHit(String[] parts) {

@@ -14,8 +14,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class MonsterPublisherActiveMQ {
 
     private static final String URL = ActiveMQConnection.DEFAULT_BROKER_URL; // URL del broker
-    private static final String MONSTER_TOPIC = "MONSTER_UPDATES"; // topic de posiciones del monstruo
-    private static final String SYSTEM_TOPIC = "GAME_SYSTEM"; // topic de eventos del sistema
+    public static final String MONSTER_TOPIC = "MONSTER_UPDATES";
+    public static final String SYSTEM_TOPIC = "GAME_SYSTEM";
 
     private final GameState gameState; // referencia al estado compartido del juego
 
