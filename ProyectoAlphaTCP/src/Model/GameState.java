@@ -23,8 +23,6 @@ public class GameState {
     }
 
     public synchronized Player addOrReconnectPlayer(String playerName) {
-        if (playerName == null || playerName.trim().isEmpty()) return null; // evita nombres vacíos
-
         String cleanName = playerName.trim(); // limpia espacios laterales
         Player player = players.get(cleanName); // busca al jugador por nombre
 
@@ -73,7 +71,7 @@ public class GameState {
         StringBuilder builder = new StringBuilder();
         for (Player player : players.values()) {
             if (player.isConnected()) {
-                if (builder.length() > 0) builder.append(",");
+                if (!builder.isEmpty()) builder.append(",");
                 builder.append(player.getName()).append(":").append(player.getScore());
             }
         }
@@ -109,21 +107,8 @@ public class GameState {
 
         monster.hide(); // oculta al monstruo
         roundActive = false; // deja la ronda inactiva
-        gameStarted = false; // regresa al lobby para que vuelvan a iniciar manualmente
         winner = null; // elimina el ganador actual
     }
 
-    @Override
-    public synchronized String toString() {
-        StringBuilder text = new StringBuilder("===== GAME STATE =====\n"); // crea encabezado de depuración
 
-        for (Player player : players.values()) text.append(player).append("\n"); // agrega cada jugador al texto
-
-        text.append(monster).append("\n"); // agrega el estado del monstruo
-        text.append("Round active: ").append(roundActive).append("\n"); // agrega estado de la ronda
-        text.append("Game started: ").append(gameStarted).append("\n"); // agrega estado de inicio de juego
-        text.append("Winner: ").append(winner).append("\n"); // agrega ganador actual
-
-        return text.toString(); // regresa el texto completo
-    }
 }

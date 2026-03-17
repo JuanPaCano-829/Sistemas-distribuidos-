@@ -35,9 +35,4 @@ public class Player {
     public void resetScore() {
         score = 0; // reinicia el score a cero
     }
-
-    @Override
-    public String toString() {
-        return "Player: " + name + " | Score: " + score + " | Connected: " + connected;
-    }
 }

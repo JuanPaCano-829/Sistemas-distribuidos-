@@ -62,17 +62,17 @@ public class MonsterPublisherActiveMQ {
                 System.out.println("Published monster position: " + position); // imprime la posición publicada
             }
 
-            Thread.sleep(1500); // espera antes de revisar la siguiente ronda
+            Thread.sleep(800); // espera antes de revisar la siguiente ronda
 
             if (gameState.hasWinner()) {
                 String winner = gameState.getWinner();
-                sendMessage(session, producer, systemDestination, "WINNER:" + winner); // publica el ganador
+                sendMessage(session, producer, systemDestination, "WINNER:" + winner);
                 System.out.println("Winner published: " + winner);
 
-                Thread.sleep(5000); // deja tiempo para que todos vean el resultado
+                Thread.sleep(5000);
                 gameState.resetMatch();
-                sendMessage(session, producer, systemDestination, "PLAYERS:" + gameState.getConnectedPlayersMessage()); // publica otra vez la lista de jugadores
-                System.out.println("Game restarted and returned to lobby.");
+                sendMessage(session, producer, systemDestination, "PLAYERS:" + gameState.getConnectedPlayersMessage());
+                System.out.println("Game automatically restarted.");
             }
         }
     }

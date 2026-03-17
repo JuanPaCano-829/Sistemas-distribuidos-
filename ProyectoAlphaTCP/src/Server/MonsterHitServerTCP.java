@@ -14,6 +14,7 @@ public class MonsterHitServerTCP {
     private static GameState gameState; // estado global compartido
     private static MonsterPublisherActiveMQ publisher; // publicador de eventos por ActiveMQ
 
+
     public static void main(String[] args) {
         gameState = new GameState(); // crea el estado compartido del juego
         publisher = new MonsterPublisherActiveMQ(gameState); // crea el publisher con el mismo estado compartido
@@ -46,6 +47,7 @@ class ConnectionHandler extends Thread {
     private final DataInputStream input; // flujo para leer mensajes
     private final DataOutputStream output; // flujo para responder mensajes
     private final GameState gameState;
+    private String connectedPlayerName = null;
 
     public ConnectionHandler(Socket clientSocket, GameState gameState) throws IOException {
         this.clientSocket = clientSocket; // guarda el socket del cliente
@@ -57,17 +59,26 @@ class ConnectionHandler extends Thread {
     @Override
     public void run() {
         try {
-            String request = input.readUTF(); // lee el mensaje enviado por el cliente
-            System.out.println("TCP request: " + request); // imprime el mensaje recibido
+            while (true) {
+                String request = input.readUTF();
+                System.out.println("TCP request: " + request);
 
-            String response = processRequest(request); // procesa el mensaje recibido
-            output.writeUTF(response); // manda la respuesta al cliente
-            output.flush(); // fuerza el envío inmediato
+                String response = processRequest(request);
+                output.writeUTF(response);
+                output.flush();
 
+                if (request.startsWith("DISCONNECT|")) {
+                    break;
+                }
+            }
         } catch (IOException e) {
-            System.out.println("Client handling error: " + e.getMessage()); // muestra error durante la atención del cliente
+            System.out.println("Client handling ended: " + e.getMessage());
         } finally {
-            closeConnection(); // cierra recursos al terminar
+            if (connectedPlayerName != null) {
+                Player player = gameState.getPlayer(connectedPlayerName);
+                if (player != null) player.setConnected(false);
+            }
+            closeConnection();
         }
     }
 
@@ -77,22 +88,17 @@ class ConnectionHandler extends Thread {
         String[] parts = request.split("\\|"); // separa el mensaje por el símbolo |
         String command = getCommand(parts); // obtiene el comando principal
 
-        switch (command) {
-            case "LOGIN":
-                return processLogin(parts); // procesa el login
+        return switch (command) {
+            case "LOGIN" -> processLogin(parts); // procesa el login
 
-            case "HIT":
-                return processHit(parts); // procesa el golpe
+            case "HIT" -> processHit(parts); // procesa el golpe
 
-            case "START_GAME":
-                return processStartGame(parts); // procesa el inicio manual de la partida
+            case "START_GAME" -> processStartGame(parts); // procesa el inicio manual de la partida
 
-            case "DISCONNECT":
-                return processDisconnect(parts); // procesa la desconexión
+            case "DISCONNECT" -> processDisconnect(parts); // procesa la desconexión
 
-            default:
-                return "ERROR|Unknown command"; // responde error si el comando no existe
-        }
+            default -> "ERROR|Unknown command"; // responde error si el comando no existe
+        };
     }
 
     private String getCommand(String[] parts) {
@@ -107,7 +113,7 @@ class ConnectionHandler extends Thread {
 
         Player player = gameState.addOrReconnectPlayer(playerName); // registra o reconecta al jugador
         if (player == null) return "ERROR|Could not register player"; // valida que sí se haya creado o reconectado
-
+        this.connectedPlayerName = player.getName();
         System.out.println("Player logged in: " + playerName); // imprime el login exitoso
         return "LOGIN_OK|" + player.getName() + "|" + player.getScore(); // responde login correcto y score actual
     }
