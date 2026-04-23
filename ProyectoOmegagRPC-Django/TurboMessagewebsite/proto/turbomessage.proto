@@ -1,0 +1,52 @@
+syntax = "proto3";
+package TURBOMESSAGE;
+
+service TurboMessage {
+    rpc Registrar        (Usuario)     returns (Status) {};
+    rpc Login            (Usuario)     returns (Status) {};
+    rpc EnviarCorreo     (Correo)      returns (Status) {};
+    rpc ObtenerBandejaSalida  (NombreUsuario) returns (ListadoCorreos) {};
+    rpc ObtenerBandejaEntrada (NombreUsuario) returns (ListadoCorreos) {};
+    rpc LeerCorreo       (CorreoId)    returns (Correo) {};
+    rpc EliminarCorreo   (EliminarRequest) returns (Status) {};
+}
+
+message Empty {
+
+}
+
+message Status {
+    optional bool   status  = 1;
+    optional string mensaje = 2;
+}
+
+message NombreUsuario {
+    optional string username = 1;
+}
+
+message Usuario {
+    optional string username = 1;
+    optional string password = 2;
+}
+
+message CorreoId {
+    optional string id = 1;
+}
+
+message Correo {
+    optional string id          = 1;
+    optional string tema        = 2;
+    optional string emisor      = 3;
+    optional string destinatario = 4;
+    optional string cuerpo      = 5;
+    optional bool   leido       = 6;
+}
+
+message EliminarRequest {
+    optional string correoId = 1;
+    optional string username = 2;
+}
+
+message ListadoCorreos {
+    repeated Correo correos = 1;
+}
