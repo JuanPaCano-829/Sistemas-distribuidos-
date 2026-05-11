@@ -1,0 +1,35 @@
+// python -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./turbomessage.proto
+
+syntax = "proto3";
+
+package turbomessage;
+
+service TurboMessage {
+   rpc createUser(User) returns (Status) {};
+   rpc userExists(User) returns (Status) {};
+   rpc sendMail(Mail) returns (Status) {};
+   rpc mailInRead(Mail) returns (Status) {};
+   rpc mailOutRead(Mail) returns (Status) {};
+   rpc deleteMailIn(Mail) returns (Status) {};
+   rpc deleteMailOut(Mail) returns (Status) {};
+   rpc readMailIn(User) returns (stream Mail) {};
+   rpc readMailOut(User) returns (stream Mail) {};
+}
+
+message User {
+   optional string username = 1;
+   optional string password = 2;
+}
+
+message Mail {
+   optional int32 id = 1;
+   optional string sender = 2;
+   optional string receiver = 3;
+   optional string subject = 4;
+   optional string message = 5;
+   optional bool read = 6;
+}
+
+message Status {
+   optional bool success = 1;
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TurboMessage</title>
+</head>
+<body>
+    <h2>Inicio de Sesion - TurboMessage</h2>
+
+    {% if error %}
+        <p>{{ error }}</p>
+    {% endif %}
+
+    <form action="" method="POST">
+        {% csrf_token %}
+        <label>Usuario: <input type="text" name="username"></label><br><br>
+        <label>Contrasena: <input type="password" name="password"></label><br><br>
+        <input type="submit" value="Iniciar Sesion">
+    </form>
+
+    <p><a href="{% url 'mailapp:register' %}">Registrarse</a></p>
+</body>
+</html>
