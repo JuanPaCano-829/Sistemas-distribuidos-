@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Correo</title>
+</head>
+<body>
+    <h2>Detalle de Correo - TurboMessage</h2>
+
+    {% if box == "inbox" %}
+        <p><a href="{% url 'mailapp:inbox' %}">Volver a bandeja de entrada</a></p>
+    {% else %}
+        <p><a href="{% url 'mailapp:outbox' %}">Volver a bandeja de salida</a></p>
+    {% endif %}
+
+    <p><strong>ID:</strong> {{ mail.id }}</p>
+    <p><strong>De:</strong> {{ mail.sender }}</p>
+    <p><strong>Para:</strong> {{ mail.receiver }}</p>
+    <p><strong>Asunto:</strong> {{ mail.subject }}</p>
+    <p><strong>Estado:</strong>
+        {% if mail.read %}
+            Leido
+        {% else %}
+            No leido
+        {% endif %}
+    </p>
+    <p><strong>Mensaje:</strong></p>
+    <p>{{ mail.message }}</p>
+</body>
+</html>

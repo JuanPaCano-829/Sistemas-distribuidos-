@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bandeja de Entrada</title>
+</head>
+<body>
+    <h2>Bandeja de Entrada - TurboMessage</h2>
+    <p>Usuario: {{ username }}</p>
+
+    <p>
+        <a href="{% url 'mailapp:compose' %}">Redactar</a> |
+        <a href="{% url 'mailapp:outbox' %}">Bandeja de Salida</a> |
+        <a href="{% url 'mailapp:logout' %}">Cerrar Sesion</a>
+    </p>
+
+    {% if mails %}
+        <ul>
+            {% for mail in mails %}
+                <li>
+                    <a href="{% url 'mailapp:inbox_detail' mail.id %}">
+                        [ID-{{ mail.id }}] {{ mail.sender }} | {{ mail.subject }}
+                    </a>
+                    {% if not mail.read %}
+                        <strong>(No leido)</strong>
+                    {% endif %}
+                    <form action="{% url 'mailapp:delete_inbox' mail.id %}" method="POST" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="submit" value="Borrar">
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay correos en la bandeja de entrada.</p>
+    {% endif %}
+</body>
+</html>
